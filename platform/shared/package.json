@@ -7,7 +7,9 @@
   "exports": {
     ".": "./index.ts",
     "./access-control": "./access-control.ts",
-    "./e2e-test-ids": "./e2e-test-ids.ts"
+    "./e2e-test-ids": "./e2e-test-ids.ts",
+    "./permission.types": "./permission.types.ts",
+    "./test-mcp-server": "./test-mcp-server.ts"
   },
   "scripts": {
     "lint": "biome check",
