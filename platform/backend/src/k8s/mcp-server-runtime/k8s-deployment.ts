@@ -29,11 +29,13 @@ import {
   resolvePlaceholders,
 } from "./k8s-yaml-generator";
 import {
+  buildManagedAwsApplicationNetworkPolicy,
   buildManagedCiliumNetworkPolicy,
   buildManagedGkeFqdnNetworkPolicy,
   buildManagedNetworkPolicy,
   constructManagedNetworkPolicyName,
   shouldManageK8sNetworkPolicy,
+  shouldUseAwsApplicationNetworkPolicy,
   shouldUseCiliumNetworkPolicy,
   shouldUseGkeFqdnNetworkPolicy,
 } from "./network-policy";
@@ -367,6 +369,7 @@ export default class K8sDeployment {
       await this.applyCiliumNetworkPolicy(policyName, effectivePolicy);
       await this.deleteKubernetesNetworkPolicy(policyName);
       await this.deleteGkeFqdnNetworkPolicy(policyName);
+      await this.deleteAwsApplicationNetworkPolicy(policyName);
       return;
     }
 
@@ -379,12 +382,27 @@ export default class K8sDeployment {
       await this.applyKubernetesNetworkPolicy(policyName, effectivePolicy);
       await this.applyGkeFqdnNetworkPolicy(policyName, effectivePolicy);
       await this.deleteCiliumNetworkPolicy(policyName);
+      await this.deleteAwsApplicationNetworkPolicy(policyName);
+      return;
+    }
+
+    if (
+      shouldUseAwsApplicationNetworkPolicy({
+        effectivePolicy,
+        capabilities: this.networkPolicyCapabilities,
+      })
+    ) {
+      await this.applyAwsApplicationNetworkPolicy(policyName, effectivePolicy);
+      await this.deleteKubernetesNetworkPolicy(policyName);
+      await this.deleteCiliumNetworkPolicy(policyName);
+      await this.deleteGkeFqdnNetworkPolicy(policyName);
       return;
     }
 
     await this.applyKubernetesNetworkPolicy(policyName, effectivePolicy);
     await this.deleteCiliumNetworkPolicy(policyName);
     await this.deleteGkeFqdnNetworkPolicy(policyName);
+    await this.deleteAwsApplicationNetworkPolicy(policyName);
   }
 
   private async applyKubernetesNetworkPolicy(
@@ -585,6 +603,74 @@ export default class K8sDeployment {
     }
   }
 
+  private async applyAwsApplicationNetworkPolicy(
+    policyName: string,
+    effectivePolicy: EffectiveNetworkPolicy,
+  ): Promise<void> {
+    const networkPolicy = buildManagedAwsApplicationNetworkPolicy({
+      name: policyName,
+      podSelectorLabels: this.getSystemLabels(),
+      effectivePolicy,
+    });
+
+    try {
+      try {
+        await this.k8sCustomObjectsApi.createNamespacedCustomObject({
+          group: "networking.k8s.aws",
+          version: "v1alpha1",
+          namespace: this.namespace,
+          plural: "applicationnetworkpolicies",
+          body: networkPolicy,
+        });
+        logger.info(
+          {
+            mcpServerId: this.mcpServer.id,
+            networkPolicyName: policyName,
+            namespace: this.namespace,
+          },
+          "Created AWS ApplicationNetworkPolicy for MCP server",
+        );
+      } catch (createError: unknown) {
+        const isConflict =
+          createError &&
+          typeof createError === "object" &&
+          (("statusCode" in createError && createError.statusCode === 409) ||
+            ("code" in createError && createError.code === 409));
+
+        if (!isConflict) {
+          throw createError;
+        }
+
+        await this.k8sCustomObjectsApi.replaceNamespacedCustomObject({
+          group: "networking.k8s.aws",
+          version: "v1alpha1",
+          namespace: this.namespace,
+          plural: "applicationnetworkpolicies",
+          name: policyName,
+          body: networkPolicy,
+        });
+        logger.info(
+          {
+            mcpServerId: this.mcpServer.id,
+            networkPolicyName: policyName,
+            namespace: this.namespace,
+          },
+          "Updated AWS ApplicationNetworkPolicy for MCP server",
+        );
+      }
+    } catch (error) {
+      logger.error(
+        {
+          err: error,
+          mcpServerId: this.mcpServer.id,
+          networkPolicyName: policyName,
+        },
+        "Failed to create or update AWS ApplicationNetworkPolicy",
+      );
+      throw error;
+    }
+  }
+
   /**
    * Delete the managed Kubernetes NetworkPolicy for this deployment.
    */
@@ -593,6 +679,7 @@ export default class K8sDeployment {
     await this.deleteKubernetesNetworkPolicy(policyName);
     await this.deleteCiliumNetworkPolicy(policyName);
     await this.deleteGkeFqdnNetworkPolicy(policyName);
+    await this.deleteAwsApplicationNetworkPolicy(policyName);
   }
 
   private async deleteKubernetesNetworkPolicy(
@@ -735,6 +822,57 @@ export default class K8sDeployment {
           networkPolicyName: policyName,
         },
         "Failed to delete GKE FQDNNetworkPolicy",
+      );
+      throw error;
+    }
+  }
+
+  private async deleteAwsApplicationNetworkPolicy(
+    policyName: string,
+  ): Promise<void> {
+    if (
+      typeof this.k8sCustomObjectsApi.deleteNamespacedCustomObject !==
+      "function"
+    ) {
+      return;
+    }
+
+    try {
+      await this.k8sCustomObjectsApi.deleteNamespacedCustomObject({
+        group: "networking.k8s.aws",
+        version: "v1alpha1",
+        namespace: this.namespace,
+        plural: "applicationnetworkpolicies",
+        name: policyName,
+      });
+
+      logger.info(
+        {
+          mcpServerId: this.mcpServer.id,
+          networkPolicyName: policyName,
+          namespace: this.namespace,
+        },
+        "Deleted AWS ApplicationNetworkPolicy for MCP server",
+      );
+    } catch (error: unknown) {
+      if (isK8sNotFoundError(error)) {
+        logger.debug(
+          {
+            mcpServerId: this.mcpServer.id,
+            networkPolicyName: policyName,
+          },
+          "AWS ApplicationNetworkPolicy not found (already deleted or never created)",
+        );
+        return;
+      }
+
+      logger.error(
+        {
+          err: error,
+          mcpServerId: this.mcpServer.id,
+          networkPolicyName: policyName,
+        },
+        "Failed to delete AWS ApplicationNetworkPolicy",
       );
       throw error;
     }

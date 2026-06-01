@@ -49,6 +49,8 @@ const CILIUM_DNS_POLICY_DOCS_URL =
   "https://docs.cilium.io/en/latest/security/dns/";
 const GKE_FQDN_POLICY_DOCS_URL =
   "https://cloud.google.com/kubernetes-engine/docs/how-to/fqdn-network-policies";
+const AWS_APPLICATION_NETWORK_POLICY_DOCS_URL =
+  "https://docs.aws.amazon.com/eks/latest/userguide/auto-net-pol.html";
 const NETWORK_POLICY_DOCS_URL = getDocsUrl(
   DocsPage.PlatformPrivateRegistry,
   "network-policies",
@@ -323,6 +325,10 @@ function NetworkPolicyEditorDialog({
                   or GKE{" "}
                   <code className="inline rounded bg-muted px-1 py-0.5 font-mono text-[0.85em]">
                     FQDNNetworkPolicy
+                  </code>{" "}
+                  or AWS{" "}
+                  <code className="inline rounded bg-muted px-1 py-0.5 font-mono text-[0.85em]">
+                    ApplicationNetworkPolicy
                   </code>
                   .
                 </p>
@@ -332,6 +338,11 @@ function NetworkPolicyEditorDialog({
                   </ExternalDocsLink>
                   <ExternalDocsLink href={GKE_FQDN_POLICY_DOCS_URL}>
                     GKE FQDN policy docs
+                  </ExternalDocsLink>
+                  <ExternalDocsLink
+                    href={AWS_APPLICATION_NETWORK_POLICY_DOCS_URL}
+                  >
+                    EKS Auto Mode policy docs
                   </ExternalDocsLink>
                 </p>
               </AlertDescription>
@@ -441,7 +452,7 @@ function NetworkPolicyEditorDialog({
             <FieldLabel
               htmlFor="network-policy-domains"
               label="Additional allowed domains"
-              description="Exact domains or wildcard subdomains to allow in restricted mode. Domain rules require CiliumNetworkPolicy; without Cilium, use CIDR rules instead."
+              description="Exact domains or wildcard subdomains to allow in restricted mode. Domain rules require a supported FQDN policy provider; otherwise use CIDR rules."
             />
             <Textarea
               id="network-policy-domains"

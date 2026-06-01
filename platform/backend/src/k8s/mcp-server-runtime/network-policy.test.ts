@@ -1,11 +1,13 @@
 import { describe, expect, test } from "@/test";
 import type { EffectiveNetworkPolicy } from "@/types";
 import {
+  buildManagedAwsApplicationNetworkPolicy,
   buildManagedCiliumNetworkPolicy,
   buildManagedGkeFqdnNetworkPolicy,
   buildManagedNetworkPolicy,
   constructManagedNetworkPolicyName,
   shouldManageK8sNetworkPolicy,
+  shouldUseAwsApplicationNetworkPolicy,
   shouldUseCiliumNetworkPolicy,
   shouldUseGkeFqdnNetworkPolicy,
 } from "./network-policy";
@@ -189,6 +191,46 @@ describe("managed MCP Kubernetes NetworkPolicy", () => {
     });
   });
 
+  test("builds an AWS ApplicationNetworkPolicy with FQDN and CIDR egress", () => {
+    const manifest = buildManagedAwsApplicationNetworkPolicy({
+      name: "mcp-egress-test",
+      podSelectorLabels: {
+        app: "mcp-server",
+        "mcp-server-id": "server-id",
+      },
+      effectivePolicy: makeEffectivePolicy({
+        egressMode: "restricted",
+        allowedDomains: ["api.example.com", "*.example.org"],
+        allowedCidrs: ["203.0.113.0/24"],
+      }),
+    });
+
+    expect(manifest).toMatchObject({
+      apiVersion: "networking.k8s.aws/v1alpha1",
+      kind: "ApplicationNetworkPolicy",
+      spec: {
+        podSelector: {
+          matchLabels: {
+            app: "mcp-server",
+            "mcp-server-id": "server-id",
+          },
+        },
+        policyTypes: ["Egress"],
+        egress: expect.arrayContaining([
+          {
+            to: [{ ipBlock: { cidr: "203.0.113.0/24" } }],
+          },
+          {
+            to: [{ domainNames: ["api.example.com"] }],
+          },
+          {
+            to: [{ domainNames: ["*.example.org"] }],
+          },
+        ]),
+      },
+    });
+  });
+
   test("uses Cilium only when Cilium is available and domain rules exist", () => {
     const policy = makeEffectivePolicy({
       egressMode: "restricted",
@@ -202,6 +244,7 @@ describe("managed MCP Kubernetes NetworkPolicy", () => {
           kubernetesNetworkPolicy: true,
           ciliumNetworkPolicy: true,
           gkeFqdnNetworkPolicy: false,
+          awsApplicationNetworkPolicy: false,
           provider: "cilium",
           supportsFqdn: true,
           supportsHttpMethods: false,
@@ -216,6 +259,7 @@ describe("managed MCP Kubernetes NetworkPolicy", () => {
           kubernetesNetworkPolicy: true,
           ciliumNetworkPolicy: false,
           gkeFqdnNetworkPolicy: false,
+          awsApplicationNetworkPolicy: false,
           provider: "kubernetes",
           supportsFqdn: false,
           supportsHttpMethods: false,
@@ -238,6 +282,7 @@ describe("managed MCP Kubernetes NetworkPolicy", () => {
           kubernetesNetworkPolicy: true,
           ciliumNetworkPolicy: false,
           gkeFqdnNetworkPolicy: true,
+          awsApplicationNetworkPolicy: false,
           provider: "gke-fqdn",
           supportsFqdn: true,
           supportsHttpMethods: false,
@@ -252,7 +297,46 @@ describe("managed MCP Kubernetes NetworkPolicy", () => {
           kubernetesNetworkPolicy: true,
           ciliumNetworkPolicy: true,
           gkeFqdnNetworkPolicy: true,
+          awsApplicationNetworkPolicy: false,
           provider: "cilium",
+          supportsFqdn: true,
+          supportsHttpMethods: false,
+          message: null,
+        },
+      }),
+    ).toBe(false);
+  });
+
+  test("uses AWS ApplicationNetworkPolicy when AWS FQDN support is available and higher-priority providers are not", () => {
+    const policy = makeEffectivePolicy({
+      egressMode: "restricted",
+      allowedDomains: ["api.example.com"],
+    });
+
+    expect(
+      shouldUseAwsApplicationNetworkPolicy({
+        effectivePolicy: policy,
+        capabilities: {
+          kubernetesNetworkPolicy: true,
+          ciliumNetworkPolicy: false,
+          gkeFqdnNetworkPolicy: false,
+          awsApplicationNetworkPolicy: true,
+          provider: "aws-application-network-policy",
+          supportsFqdn: true,
+          supportsHttpMethods: false,
+          message: null,
+        },
+      }),
+    ).toBe(true);
+    expect(
+      shouldUseAwsApplicationNetworkPolicy({
+        effectivePolicy: policy,
+        capabilities: {
+          kubernetesNetworkPolicy: true,
+          ciliumNetworkPolicy: false,
+          gkeFqdnNetworkPolicy: true,
+          awsApplicationNetworkPolicy: true,
+          provider: "gke-fqdn",
           supportsFqdn: true,
           supportsHttpMethods: false,
           message: null,

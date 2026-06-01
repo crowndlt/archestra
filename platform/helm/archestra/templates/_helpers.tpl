@@ -315,6 +315,9 @@ grant exactly the same access (no drift).
 - apiGroups: ["networking.gke.io"]
   resources: ["fqdnnetworkpolicies"]
   verbs: ["get", "list", "create", "update", "patch", "delete", "watch"]
+- apiGroups: ["networking.k8s.aws"]
+  resources: ["applicationnetworkpolicies"]
+  verbs: ["get", "list", "create", "update", "patch", "delete", "watch"]
 {{- end }}
 
 {{/*

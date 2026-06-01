@@ -22,6 +22,7 @@ describe("Kubernetes capability inspection", () => {
       kubernetesNetworkPolicy: true,
       ciliumNetworkPolicy: true,
       gkeFqdnNetworkPolicy: false,
+      awsApplicationNetworkPolicy: false,
       provider: "cilium",
       supportsFqdn: true,
       supportsHttpMethods: false,
@@ -41,6 +42,7 @@ describe("Kubernetes capability inspection", () => {
       kubernetesNetworkPolicy: true,
       ciliumNetworkPolicy: false,
       gkeFqdnNetworkPolicy: false,
+      awsApplicationNetworkPolicy: false,
       provider: "kubernetes",
       supportsFqdn: false,
       supportsHttpMethods: false,
@@ -65,7 +67,33 @@ describe("Kubernetes capability inspection", () => {
       kubernetesNetworkPolicy: true,
       ciliumNetworkPolicy: false,
       gkeFqdnNetworkPolicy: true,
+      awsApplicationNetworkPolicy: false,
       provider: "gke-fqdn",
+      supportsFqdn: true,
+      supportsHttpMethods: false,
+    });
+  });
+
+  test("reports AWS FQDN support when the ApplicationNetworkPolicy CRD exists", async () => {
+    const customObjectsApi = {
+      getAPIResources: vi.fn(async ({ group }: { group: string }) => ({
+        resources:
+          group === "networking.k8s.aws"
+            ? [{ name: "applicationnetworkpolicies" }]
+            : [],
+      })),
+    };
+
+    const capabilities = await getK8sCapabilitiesFromApi(
+      customObjectsApi as never,
+    );
+
+    expect(capabilities.networkPolicy).toMatchObject({
+      kubernetesNetworkPolicy: true,
+      ciliumNetworkPolicy: false,
+      gkeFqdnNetworkPolicy: false,
+      awsApplicationNetworkPolicy: true,
+      provider: "aws-application-network-policy",
       supportsFqdn: true,
       supportsHttpMethods: false,
     });

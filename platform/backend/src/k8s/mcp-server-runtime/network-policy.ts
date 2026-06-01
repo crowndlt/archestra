@@ -142,6 +142,43 @@ export function buildManagedGkeFqdnNetworkPolicy(params: {
   };
 }
 
+export function buildManagedAwsApplicationNetworkPolicy(params: {
+  name: string;
+  podSelectorLabels: Record<string, string>;
+  effectivePolicy: EffectiveNetworkPolicy;
+}): Record<string, unknown> {
+  const policy = params.effectivePolicy.policy;
+  if (!policy) {
+    throw new Error(
+      "Cannot build a managed ApplicationNetworkPolicy without a policy",
+    );
+  }
+
+  const labels = sanitizeMetadataLabels({
+    app: "mcp-server",
+    "app.kubernetes.io/managed-by": "archestra",
+    "archestra.io/resource": "mcp-network-policy",
+    "archestra.io/network-policy-id": policy.id,
+  });
+
+  return {
+    apiVersion: "networking.k8s.aws/v1alpha1",
+    kind: "ApplicationNetworkPolicy",
+    metadata: {
+      name: params.name,
+      labels,
+      annotations: buildPolicyAnnotations(params.effectivePolicy),
+    },
+    spec: {
+      podSelector: {
+        matchLabels: params.podSelectorLabels,
+      },
+      policyTypes: ["Egress"],
+      egress: buildAwsApplicationEgressRules(policy),
+    },
+  };
+}
+
 export function shouldUseCiliumNetworkPolicy(params: {
   effectivePolicy?: EffectiveNetworkPolicy | null;
   capabilities?: K8sNetworkPolicyCapabilities | null;
@@ -162,6 +199,19 @@ export function shouldUseGkeFqdnNetworkPolicy(params: {
     params.capabilities?.gkeFqdnNetworkPolicy === true &&
     params.effectivePolicy?.policy?.egressMode === "restricted" &&
     ciliumDomainRules(params.effectivePolicy.policy).length > 0
+  );
+}
+
+export function shouldUseAwsApplicationNetworkPolicy(params: {
+  effectivePolicy?: EffectiveNetworkPolicy | null;
+  capabilities?: K8sNetworkPolicyCapabilities | null;
+}): boolean {
+  return (
+    params.capabilities?.ciliumNetworkPolicy !== true &&
+    params.capabilities?.gkeFqdnNetworkPolicy !== true &&
+    params.capabilities?.awsApplicationNetworkPolicy === true &&
+    params.effectivePolicy?.policy?.egressMode === "restricted" &&
+    networkPolicyDomains(params.effectivePolicy.policy).length > 0
   );
 }
 
@@ -214,6 +264,28 @@ function buildCiliumEgressRules(
   }
 
   return rules;
+}
+
+function buildAwsApplicationEgressRules(
+  policy: NonNullable<EffectiveNetworkPolicy["policy"]>,
+): Array<Record<string, unknown>> {
+  if (policy.egressMode === "off") {
+    return [];
+  }
+
+  if (policy.egressMode !== "restricted") {
+    return [];
+  }
+
+  return [
+    buildDnsEgressRule() as unknown as Record<string, unknown>,
+    ...policy.allowedCidrs.map((cidr) => ({
+      to: [{ ipBlock: { cidr } }],
+    })),
+    ...networkPolicyDomains(policy).map((domain) => ({
+      to: [{ domainNames: [domain] }],
+    })),
+  ];
 }
 
 function buildCiliumDnsEgressRule(): Record<string, unknown> {
@@ -293,12 +365,17 @@ function buildPolicyAnnotations(
 function ciliumDomainRules(
   policy: NonNullable<EffectiveNetworkPolicy["policy"]>,
 ): Array<{ matchName?: string; matchPattern?: string }> {
-  return [...presetDomains(policy.domainPreset), ...policy.allowedDomains].map(
-    (domain) =>
-      domain.startsWith("*.")
-        ? { matchPattern: domain.replace(/^\*\./, "*.") }
-        : { matchName: domain },
+  return networkPolicyDomains(policy).map((domain) =>
+    domain.startsWith("*.")
+      ? { matchPattern: domain.replace(/^\*\./, "*.") }
+      : { matchName: domain },
   );
+}
+
+function networkPolicyDomains(
+  policy: NonNullable<EffectiveNetworkPolicy["policy"]>,
+): string[] {
+  return [...presetDomains(policy.domainPreset), ...policy.allowedDomains];
 }
 
 /**

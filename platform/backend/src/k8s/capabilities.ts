@@ -23,24 +23,31 @@ export async function getK8sCapabilitiesFromApi(
     await hasCiliumNetworkPolicyResource(customObjectsApi);
   const gkeFqdnNetworkPolicy =
     await hasGkeFqdnNetworkPolicyResource(customObjectsApi);
+  const awsApplicationNetworkPolicy =
+    await hasAwsApplicationNetworkPolicyResource(customObjectsApi);
   const provider = ciliumNetworkPolicy
     ? "cilium"
     : gkeFqdnNetworkPolicy
       ? "gke-fqdn"
-      : "kubernetes";
-  const supportsFqdn = ciliumNetworkPolicy || gkeFqdnNetworkPolicy;
+      : awsApplicationNetworkPolicy
+        ? "aws-application-network-policy"
+        : "kubernetes";
+  const supportsFqdn =
+    ciliumNetworkPolicy || gkeFqdnNetworkPolicy || awsApplicationNetworkPolicy;
 
   return {
     networkPolicy: {
       kubernetesNetworkPolicy: true,
       ciliumNetworkPolicy,
       gkeFqdnNetworkPolicy,
+      awsApplicationNetworkPolicy,
       provider,
       supportsFqdn,
       supportsHttpMethods: false,
       message: capabilityMessage({
         ciliumNetworkPolicy,
         gkeFqdnNetworkPolicy,
+        awsApplicationNetworkPolicy,
         supportsFqdn,
       }),
     },
@@ -77,6 +84,7 @@ async function hasCiliumNetworkPolicyResource(
 function capabilityMessage(params: {
   ciliumNetworkPolicy: boolean;
   gkeFqdnNetworkPolicy: boolean;
+  awsApplicationNetworkPolicy: boolean;
   supportsFqdn: boolean;
 }): string {
   if (params.ciliumNetworkPolicy) {
@@ -84,6 +92,9 @@ function capabilityMessage(params: {
   }
   if (params.gkeFqdnNetworkPolicy) {
     return "GKE FQDNNetworkPolicy API detected. Domain allowlists can be enforced by GKE.";
+  }
+  if (params.awsApplicationNetworkPolicy) {
+    return "AWS ApplicationNetworkPolicy API detected. Domain allowlists can be enforced by EKS Auto Mode.";
   }
   if (!params.supportsFqdn) {
     return "No supported FQDN policy provider detected. Kubernetes NetworkPolicy only enforces IP/CIDR egress.";
@@ -116,12 +127,38 @@ async function hasGkeFqdnNetworkPolicyResource(
   }
 }
 
+async function hasAwsApplicationNetworkPolicyResource(
+  customObjectsApi: k8s.CustomObjectsApi,
+): Promise<boolean> {
+  try {
+    const resourceList = await customObjectsApi.getAPIResources({
+      group: "networking.k8s.aws",
+      version: "v1alpha1",
+    });
+    return (
+      resourceList.resources?.some(
+        (resource) => resource.name === "applicationnetworkpolicies",
+      ) ?? false
+    );
+  } catch (error) {
+    if (isK8sNotFoundError(error)) {
+      return false;
+    }
+    logger.warn(
+      { err: error },
+      "Failed to inspect AWS ApplicationNetworkPolicy Kubernetes API resources",
+    );
+    return false;
+  }
+}
+
 function unavailableCapabilities(): K8sCapabilities {
   return {
     networkPolicy: {
       kubernetesNetworkPolicy: false,
       ciliumNetworkPolicy: false,
       gkeFqdnNetworkPolicy: false,
+      awsApplicationNetworkPolicy: false,
       provider: "none",
       supportsFqdn: false,
       supportsHttpMethods: false,

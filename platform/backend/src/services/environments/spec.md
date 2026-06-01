@@ -41,7 +41,7 @@ Network policies define:
 
 - **egress mode**:
   - `off`: no internet egress except cluster-internal traffic needed by the runtime.
-  - `restricted`: allow selected CIDRs, and when Cilium is available, selected domain rules.
+  - `restricted`: allow selected CIDRs, and when an FQDN provider is available, selected domain rules.
   - `unrestricted`: allow all egress.
 - **allowed CIDRs**: IPv4/IPv6 CIDR ranges enforced with vanilla Kubernetes `NetworkPolicy`.
 - **domain preset** for restricted mode:
@@ -49,7 +49,8 @@ Network policies define:
   - `common_dependencies`: allow common package/source-control domains, then add custom domains.
   - `package_managers`: allow common package manager domains, then add custom domains.
 - **additional allowed domains**: exact domains and wildcard subdomains such as
-  `api.example.com` and `*.example.com`; requires Cilium `CiliumNetworkPolicy`.
+  `api.example.com` and `*.example.com`; requires Cilium `CiliumNetworkPolicy`,
+  GKE `FQDNNetworkPolicy`, or EKS Auto Mode `ApplicationNetworkPolicy`.
 
 Policy resolution:
 
@@ -72,12 +73,13 @@ Runtime mapping:
   set for each selected workload and avoid relying on policy ordering.
 - Kubernetes `NetworkPolicy` is L3/L4 only. The managed object enforces `off`, DNS, and CIDR
   egress rules.
-- When the cluster exposes Cilium `CiliumNetworkPolicy`, Archestra uses it for policies with
-  domain presets or custom domains. Without Cilium, the UI advertises that domain rules are
-  unavailable and links to Cilium DNS policy docs.
+- When the cluster exposes Cilium `CiliumNetworkPolicy`, GKE `FQDNNetworkPolicy`, or EKS
+  Auto Mode `ApplicationNetworkPolicy`, Archestra uses it for policies with domain presets
+  or custom domains. Without an FQDN provider, the UI explains that domain rules are unavailable.
+- EKS Auto Mode DNS rules only apply to workloads running on Auto Mode-launched EC2 nodes.
 - Enforcement requires a Kubernetes network plugin that supports `NetworkPolicy`.
 - The Helm chart service account needs RBAC for CRUD on `networkpolicies.networking.k8s.io`
-  and `ciliumnetworkpolicies.cilium.io`.
+  plus any detected FQDN object type.
 
 This feature is built **in parallel** with the existing "presets" feature. Presets are hidden
 behind a feature flag and removed later. **There is no migration and no backward compatibility

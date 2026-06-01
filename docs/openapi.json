@@ -121940,11 +121940,15 @@
                         "gkeFqdnNetworkPolicy": {
                           "type": "boolean"
                         },
+                        "awsApplicationNetworkPolicy": {
+                          "type": "boolean"
+                        },
                         "provider": {
                           "type": "string",
                           "enum": [
                             "cilium",
                             "gke-fqdn",
+                            "aws-application-network-policy",
                             "kubernetes",
                             "none"
                           ]
@@ -121964,6 +121968,7 @@
                         "kubernetesNetworkPolicy",
                         "ciliumNetworkPolicy",
                         "gkeFqdnNetworkPolicy",
+                        "awsApplicationNetworkPolicy",
                         "provider",
                         "supportsFqdn",
                         "supportsHttpMethods",
