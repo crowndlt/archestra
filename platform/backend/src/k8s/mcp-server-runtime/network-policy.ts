@@ -245,6 +245,10 @@ function ciliumDomainRules(
   );
 }
 
+/**
+ * Preset allowlists are inspired by OpenAI Codex cloud internet access
+ * presets and Claude Code web's trusted network access defaults.
+ */
 function presetDomains(
   preset: NonNullable<EffectiveNetworkPolicy["policy"]>["domainPreset"],
 ): string[] {
