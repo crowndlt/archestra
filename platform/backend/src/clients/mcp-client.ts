@@ -25,7 +25,7 @@ import {
   type McpToolError,
   parseFullToolName,
   TimeInMs,
-} from "@shared";
+} from "@archestra/shared";
 import QuickLRU from "quick-lru";
 import { LRUCacheManager } from "@/cache-manager";
 import config from "@/config";

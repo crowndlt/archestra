@@ -3,7 +3,7 @@ import {
   E2eTestId,
   getChatApiKeySelectorOptionTestId,
   getChatApiKeySelectorProviderGroupTestId,
-} from "@shared";
+} from "@archestra/shared";
 import {
   LLM_PROVIDER_API_KEYS_AVAILABLE_ROUTE,
   LLM_PROVIDER_API_KEYS_ROUTE,

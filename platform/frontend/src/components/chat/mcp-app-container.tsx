@@ -13,7 +13,7 @@ import {
   buildFullToolName,
   MCP_SERVER_TOOL_NAME_SEPARATOR,
   parseFullToolName,
-} from "@shared";
+} from "@archestra/shared";
 import { PanelRightOpen } from "lucide-react";
 import { useTheme } from "next-themes";
 import type React from "react";

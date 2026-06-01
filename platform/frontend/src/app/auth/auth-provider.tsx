@@ -6,7 +6,7 @@ import {
   EMAIL_PLACEHOLDER,
   PASSWORD_PLACEHOLDER,
   type Permissions,
-} from "@shared";
+} from "@archestra/shared";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useMemo } from "react";

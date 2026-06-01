@@ -4,7 +4,7 @@ import {
   CHAT_TITLE_GENERATION_SYSTEM_PROMPT,
   CONTEXT_COMPACTION_SYSTEM_PROMPT,
   POLICY_CONFIG_SYSTEM_PROMPT,
-} from "@shared";
+} from "@archestra/shared";
 import db, { schema } from "@/database";
 import AgentModel from "@/models/agent";
 import { describe, expect, test } from "@/test";

@@ -5,7 +5,7 @@ import {
   getAssignmentComboboxDisabledOptionTestId,
   getAssignmentComboboxOptionTestId,
   getAssignmentComboboxSearchInputTestId,
-} from "@shared";
+} from "@archestra/shared";
 import { goToPage } from "../fixtures";
 
 type AssignmentTarget = {

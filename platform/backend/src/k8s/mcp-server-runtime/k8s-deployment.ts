@@ -7,7 +7,7 @@ import {
   MCP_ORCHESTRATOR_DEFAULTS,
   type McpDeploymentState,
   TimeInMs,
-} from "@shared";
+} from "@archestra/shared";
 import type z from "zod";
 import config from "@/config";
 import {

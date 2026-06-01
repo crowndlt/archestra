@@ -5,7 +5,7 @@ import {
   getArchestraToolFullName,
   getArchestraToolShortName,
   isAgentTool,
-} from "@shared";
+} from "@archestra/shared";
 import { ZodError, type ZodType } from "zod";
 import config from "@/config";
 // Import all groups

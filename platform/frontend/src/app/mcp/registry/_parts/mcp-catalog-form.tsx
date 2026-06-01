@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type archestraApiTypes, DocsPage } from "@shared";
+import { type archestraApiTypes, DocsPage } from "@archestra/shared";
 import {
   Ban,
   Code,

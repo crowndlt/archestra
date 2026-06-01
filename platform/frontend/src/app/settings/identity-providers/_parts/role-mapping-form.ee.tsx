@@ -20,7 +20,7 @@ import {
   E2eTestId,
   getIdpRoleMappingRuleRowTestId,
   type IdentityProviderFormValues,
-} from "@shared";
+} from "@archestra/shared";
 import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { type UseFormReturn, useFieldArray } from "react-hook-form";

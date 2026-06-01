@@ -11,7 +11,7 @@ import {
   type SupportedProvider,
   TimeInMs,
   type TokenUsage,
-} from "@shared";
+} from "@archestra/shared";
 import {
   convertToModelMessages,
   createUIMessageStream,

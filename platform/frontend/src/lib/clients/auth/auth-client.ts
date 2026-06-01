@@ -4,7 +4,7 @@ import {
   allAvailableActions,
   editorPermissions,
   memberPermissions,
-} from "@shared/access-control";
+} from "@archestra/shared/access-control";
 import {
   adminClient,
   inferOrgAdditionalFields,

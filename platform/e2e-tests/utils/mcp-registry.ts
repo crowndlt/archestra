@@ -3,7 +3,7 @@ import {
   E2eTestId,
   getManageCredentialsAddToTeamOptionTestId,
   getManageCredentialsButtonTestId,
-} from "@shared";
+} from "@archestra/shared";
 import { UI_BASE_URL } from "../consts";
 import { expect, goToPage } from "../fixtures";
 import { clickButton, closeOpenDialogs } from "./dialogs";

@@ -4,8 +4,8 @@ import {
   DEFAULT_VAULT_TOKEN,
   E2eTestId,
   SecretsManagerType,
-} from "@shared";
-import { testMcpServerCommand } from "@shared/test-mcp-server";
+} from "@archestra/shared";
+import { testMcpServerCommand } from "@archestra/shared/test-mcp-server";
 import {
   ADMIN_EMAIL,
   DEFAULT_TEAM_NAME,

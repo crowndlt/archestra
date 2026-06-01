@@ -3,7 +3,7 @@ import type {
   InteractionSource,
   SupportedProvider,
   SupportedProviderDiscriminator,
-} from "@shared";
+} from "@archestra/shared";
 import logger from "@/logging";
 import { InteractionModel, ModelModel } from "@/models";
 import { metrics } from "@/observability";

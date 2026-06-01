@@ -1,4 +1,4 @@
-import type { archestraApiTypes } from "@shared";
+import type { archestraApiTypes } from "@archestra/shared";
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import {
   useCatalogPresets,

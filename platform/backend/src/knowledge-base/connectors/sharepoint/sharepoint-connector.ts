@@ -5,7 +5,7 @@ import type {
   DriveItem as GraphDriveItem,
   SitePage as GraphSitePage,
 } from "@microsoft/microsoft-graph-types";
-import type { ModelInputModality } from "@shared";
+import type { ModelInputModality } from "@archestra/shared";
 import JSZip from "jszip";
 import type {
   ConnectorCredentials,

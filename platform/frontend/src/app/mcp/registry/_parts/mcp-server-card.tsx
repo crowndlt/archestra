@@ -5,7 +5,7 @@ import {
   E2eTestId,
   getManageCredentialsButtonTestId,
   type McpDeploymentStatusEntry,
-} from "@shared";
+} from "@archestra/shared";
 import {
   AlertTriangle,
   MessageSquare,

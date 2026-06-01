@@ -9,7 +9,7 @@
  */
 
 import type { GoogleGenAI } from "@google/genai";
-import type { InteractionSource, SupportedProvider } from "@shared";
+import type { InteractionSource, SupportedProvider } from "@archestra/shared";
 import client from "prom-client";
 import logger from "@/logging";
 import { getUsageTokens as getAnthropicUsage } from "@/routes/proxy/adapters/anthropic";

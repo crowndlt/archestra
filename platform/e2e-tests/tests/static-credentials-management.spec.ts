@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { archestraApiSdk } from "@shared";
+import { archestraApiSdk } from "@archestra/shared";
 import {
   ADMIN_EMAIL,
   DEFAULT_TEAM_NAME,

@@ -1,5 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
-import { E2eTestId } from "@shared";
+import { E2eTestId } from "@archestra/shared";
 import { UI_BASE_URL } from "../consts";
 
 export async function expectAuthenticated(

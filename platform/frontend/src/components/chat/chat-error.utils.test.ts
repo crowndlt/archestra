@@ -1,4 +1,4 @@
-import { ChatErrorCode, ChatErrorMessages, RetryableErrorCodes } from "@shared";
+import { ChatErrorCode, ChatErrorMessages, RetryableErrorCodes } from "@archestra/shared";
 import { describe, expect, it } from "vitest";
 import {
   AI_SDK_INTERNAL_TYPES,

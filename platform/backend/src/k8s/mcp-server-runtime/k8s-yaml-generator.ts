@@ -2,7 +2,7 @@ import type * as k8s from "@kubernetes/client-node";
 import {
   type EnvironmentVariableSchema,
   MCP_ORCHESTRATOR_DEFAULTS,
-} from "@shared";
+} from "@archestra/shared";
 import * as yaml from "js-yaml";
 import type { z } from "zod";
 

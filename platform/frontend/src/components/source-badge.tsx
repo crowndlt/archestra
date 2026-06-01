@@ -1,4 +1,4 @@
-import { INTERACTION_SOURCE_DISPLAY, type InteractionSource } from "@shared";
+import { INTERACTION_SOURCE_DISPLAY, type InteractionSource } from "@archestra/shared";
 import {
   CalendarClock,
   Database,

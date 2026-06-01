@@ -4,7 +4,7 @@ import {
   type Page,
   test as setup,
 } from "@playwright/test";
-import { EDITOR_ROLE_NAME, MEMBER_ROLE_NAME } from "@shared";
+import { EDITOR_ROLE_NAME, MEMBER_ROLE_NAME } from "@archestra/shared";
 import {
   ADMIN_EMAIL,
   ADMIN_PASSWORD,

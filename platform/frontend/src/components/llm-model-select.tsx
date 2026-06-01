@@ -7,7 +7,7 @@ import {
   OPENROUTER_AUTO_MODEL_ID,
   providerDisplayNames,
   type SupportedProvider,
-} from "@shared";
+} from "@archestra/shared";
 import { Layers, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { type ReactNode, useEffect, useMemo, useState } from "react";

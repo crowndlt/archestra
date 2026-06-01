@@ -8,7 +8,7 @@ import {
   resourceCategories,
   resourceDescriptions,
   resourceLabels,
-} from "@shared";
+} from "@archestra/shared";
 import {
   Check,
   ChevronDown,

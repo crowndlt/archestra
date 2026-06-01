@@ -6,7 +6,7 @@ import {
   TOOL_TODO_WRITE_SHORT_NAME,
   type ToolStateMcpToolError,
   ToolStateMcpToolErrorSchema,
-} from "@shared";
+} from "@archestra/shared";
 import { z } from "zod";
 import { isAgentTypeAdmin } from "@/auth/agent-type-permissions";
 import logger from "@/logging";

@@ -1,7 +1,7 @@
 import {
   buildArchestraToolRefusalMetadata,
   TOOL_INVOCATION_DISABLED_FOR_CONVERSATION_REASON,
-} from "@shared";
+} from "@archestra/shared";
 import { archestraMcpBranding } from "@/archestra-mcp-server/branding";
 import logger from "@/logging";
 import {

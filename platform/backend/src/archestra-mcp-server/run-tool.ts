@@ -6,7 +6,7 @@ import {
   isAgentTool,
   TOOL_RUN_TOOL_SHORT_NAME,
   TOOL_SEARCH_TOOLS_SHORT_NAME,
-} from "@shared";
+} from "@archestra/shared";
 import { z } from "zod";
 import logger from "@/logging";
 import { archestraMcpBranding } from "./branding";

@@ -1,6 +1,6 @@
 "use client";
 
-import type { archestraApiTypes, ResourceVisibilityScope } from "@shared";
+import type { archestraApiTypes, ResourceVisibilityScope } from "@archestra/shared";
 import {
   AlertTriangle,
   ArrowLeft,

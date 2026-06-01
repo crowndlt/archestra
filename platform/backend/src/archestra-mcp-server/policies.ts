@@ -11,7 +11,7 @@ import {
   TOOL_GET_TRUSTED_DATA_POLICY_SHORT_NAME,
   TOOL_UPDATE_TOOL_INVOCATION_POLICY_SHORT_NAME,
   TOOL_UPDATE_TRUSTED_DATA_POLICY_SHORT_NAME,
-} from "@shared";
+} from "@archestra/shared";
 import { z } from "zod";
 import logger from "@/logging";
 import { ToolInvocationPolicyModel, TrustedDataPolicyModel } from "@/models";

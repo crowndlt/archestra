@@ -31,8 +31,8 @@ const {
   hasPermissionsMock: vi.fn(),
 }));
 
-vi.mock("@shared", async () => {
-  const actual = await vi.importActual<Record<string, unknown>>("@shared");
+vi.mock("@archestra/shared", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>("@archestra/shared");
   return {
     ...actual,
     archestraApiSdk: {

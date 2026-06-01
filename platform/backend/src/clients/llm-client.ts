@@ -9,7 +9,7 @@ import { createMistral } from "@ai-sdk/mistral";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createXai } from "@ai-sdk/xai";
 import { context, propagation } from "@opentelemetry/api";
-import type { InteractionSource } from "@shared";
+import type { InteractionSource } from "@archestra/shared";
 import {
   CHAT_API_KEY_ID_HEADER,
   EXTERNAL_AGENT_ID_HEADER,
@@ -19,7 +19,7 @@ import {
   type SupportedProvider,
   UNTRUSTED_CONTEXT_HEADER,
   USER_ID_HEADER,
-} from "@shared";
+} from "@archestra/shared";
 import type { streamText } from "ai";
 import { isAzureOpenAiEntraIdEnabled } from "@/clients/azure-openai-credentials";
 import {

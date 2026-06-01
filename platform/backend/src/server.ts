@@ -26,7 +26,7 @@ import {
   EmbeddingDimensionsSchema,
   LocalConfigEnvironmentDefaultSchema,
   SUPPORTED_EMBEDDING_DIMENSIONS,
-} from "@shared";
+} from "@archestra/shared";
 import Fastify, { type FastifyRequest } from "fastify";
 import metricsPlugin from "fastify-metrics";
 import {

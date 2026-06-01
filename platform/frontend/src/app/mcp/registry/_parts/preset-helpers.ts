@@ -1,4 +1,4 @@
-import type { archestraApiTypes } from "@shared";
+import type { archestraApiTypes } from "@archestra/shared";
 import { useHasPermissions, useSession } from "@/lib/auth/auth.query";
 
 export type CatalogItem =

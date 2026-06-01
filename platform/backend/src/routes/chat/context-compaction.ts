@@ -4,7 +4,7 @@ import {
   BUILT_IN_AGENT_IDS,
   CONTEXT_COMPACTION_SYSTEM_PROMPT,
   type SupportedProvider,
-} from "@shared";
+} from "@archestra/shared";
 import { convertToModelMessages, generateText, type UIMessage } from "ai";
 import { createLLMModel, isApiKeyRequired } from "@/clients/llm-client";
 import logger from "@/logging";

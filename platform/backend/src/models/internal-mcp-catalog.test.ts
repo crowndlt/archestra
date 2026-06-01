@@ -1,4 +1,4 @@
-import { ARCHESTRA_MCP_CATALOG_ID, DEFAULT_APP_NAME } from "@shared";
+import { ARCHESTRA_MCP_CATALOG_ID, DEFAULT_APP_NAME } from "@archestra/shared";
 import { describe, expect, test } from "@/test";
 import {
   ENTERPRISE_MANAGED_CLIENT_SECRET_OVERRIDE_SECRET_KEY,

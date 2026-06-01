@@ -4,7 +4,7 @@ import {
   expect,
   type Page,
 } from "@playwright/test";
-import { archestraApiSdk, getManageCredentialsButtonTestId } from "@shared";
+import { archestraApiSdk, getManageCredentialsButtonTestId } from "@archestra/shared";
 import {
   DEFAULT_TEAM_NAME,
   E2eTestId,

@@ -6,8 +6,8 @@ import {
   E2eTestId,
   GITHUB_REPO_NEW_ISSUE_URL,
   GITHUB_REPO_URL,
-} from "@shared";
-import { requiredPagePermissionsMap } from "@shared/access-control";
+} from "@archestra/shared";
+import { requiredPagePermissionsMap } from "@archestra/shared/access-control";
 import {
   BookOpen,
   Bot,

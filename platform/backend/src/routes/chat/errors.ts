@@ -18,7 +18,7 @@ import {
   type SupportedProvider,
   VllmErrorTypes,
   ZhipuaiErrorTypes,
-} from "@shared";
+} from "@archestra/shared";
 import { APICallError, NoOutputGeneratedError, RetryError } from "ai";
 import logger from "@/logging";
 import { getActiveSessionId } from "@/observability/request-context";

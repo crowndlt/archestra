@@ -1,6 +1,6 @@
 "use client";
 
-import { AGENT_TOOL_PREFIX, isAgentTool, parseFullToolName } from "@shared";
+import { AGENT_TOOL_PREFIX, isAgentTool, parseFullToolName } from "@archestra/shared";
 import { formatDistanceToNow } from "date-fns";
 import {
   ChevronDown,

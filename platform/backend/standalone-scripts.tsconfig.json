@@ -3,8 +3,8 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
-      "@shared": ["../shared/index.ts"],
-      "@shared/*": ["../shared/*"]
+      "@archestra/shared": ["../shared/index.ts"],
+      "@archestra/shared/*": ["../shared/*"]
     }
   },
   "include": ["src/**/*"],

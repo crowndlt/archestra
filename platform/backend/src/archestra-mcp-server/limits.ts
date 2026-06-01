@@ -6,7 +6,7 @@ import {
   TOOL_GET_LIMITS_SHORT_NAME,
   TOOL_GET_LLM_PROXY_TOKEN_USAGE_SHORT_NAME,
   TOOL_UPDATE_LIMIT_SHORT_NAME,
-} from "@shared";
+} from "@archestra/shared";
 import { z } from "zod";
 import logger from "@/logging";
 import { LimitModel } from "@/models";

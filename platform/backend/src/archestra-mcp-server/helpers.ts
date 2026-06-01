@@ -4,7 +4,7 @@ import {
   type ArchestraToolShortName,
   getArchestraToolFullName,
   type McpToolError,
-} from "@shared";
+} from "@archestra/shared";
 import { ZodError, type ZodType, z } from "zod";
 import logger from "@/logging";
 import {

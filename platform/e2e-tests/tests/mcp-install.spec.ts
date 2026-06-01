@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { archestraApiSdk, E2eTestId } from "@shared";
+import { archestraApiSdk, E2eTestId } from "@archestra/shared";
 import { type Page, test } from "../fixtures";
 import {
   clickButton,

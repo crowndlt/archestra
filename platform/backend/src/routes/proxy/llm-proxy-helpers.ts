@@ -12,7 +12,7 @@ import {
   type InteractionSource,
   type SupportedProvider,
   type SupportedProviderDiscriminator,
-} from "@shared";
+} from "@archestra/shared";
 import type { FastifyReply } from "fastify";
 import logger from "@/logging";
 import { metrics } from "@/observability";

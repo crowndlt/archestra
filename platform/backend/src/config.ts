@@ -11,7 +11,7 @@ import {
   DEFAULT_VAULT_TOKEN,
   type SupportedProvider,
   SupportedProviders,
-} from "@shared";
+} from "@archestra/shared";
 import dotenv from "dotenv";
 import logger from "@/logging";
 import {

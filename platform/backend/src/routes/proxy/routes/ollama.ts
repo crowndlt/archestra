@@ -5,7 +5,7 @@
  * See: https://github.com/ollama/ollama/blob/main/docs/openai.md
  */
 import fastifyHttpProxy from "@fastify/http-proxy";
-import { RouteId } from "@shared";
+import { RouteId } from "@archestra/shared";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import config from "@/config";

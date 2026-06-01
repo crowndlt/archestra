@@ -1,4 +1,4 @@
-import { type Action, getResourceForAgentType, type Resource } from "@shared";
+import { type Action, getResourceForAgentType, type Resource } from "@archestra/shared";
 import {
   type AgentScope,
   type AgentType,

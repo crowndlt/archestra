@@ -1,4 +1,4 @@
-import type { SupportedEmbeddingDimension, SupportedProvider } from "@shared";
+import type { SupportedEmbeddingDimension, SupportedProvider } from "@archestra/shared";
 import {
   boolean,
   index,

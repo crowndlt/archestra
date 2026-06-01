@@ -2,7 +2,7 @@ import {
   ARCHESTRA_MCP_CATALOG_ID,
   TOOL_ACTIVATE_SKILL_FULL_NAME,
   TOOL_READ_SKILL_FILE_FULL_NAME,
-} from "@shared";
+} from "@archestra/shared";
 import { getArchestraMcpTools } from "@/archestra-mcp-server";
 import db, { schema } from "@/database";
 import { describe, expect, test } from "@/test";

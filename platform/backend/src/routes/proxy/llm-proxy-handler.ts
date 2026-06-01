@@ -18,7 +18,7 @@ import {
   isProviderApiKeyOptional,
   SOURCE_HEADER,
   UNTRUSTED_CONTEXT_HEADER,
-} from "@shared";
+} from "@archestra/shared";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { LRUCacheManager } from "@/cache-manager";
 import { isAzureOpenAiEntraIdEnabled } from "@/clients/azure-openai-credentials";

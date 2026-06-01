@@ -3,7 +3,7 @@ import {
   E2eTestId,
   getDeleteVirtualKeyButtonTestId,
   getVirtualKeyRowTestId,
-} from "@shared/e2e-test-ids";
+} from "@archestra/shared/e2e-test-ids";
 
 export class VirtualKeysPage {
   readonly page: Page;
