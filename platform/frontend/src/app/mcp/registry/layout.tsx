@@ -34,7 +34,13 @@ export default function McpCatalogLayout({
   const tabs = [
     { label: "Catalog", href: "/mcp/registry" },
     ...(canManageEnvironments
-      ? [{ label: "Environments", href: "/mcp/registry/environments" }]
+      ? [
+          { label: "Environments", href: "/mcp/registry/environments" },
+          {
+            label: "Network Policies",
+            href: "/mcp/registry/network-policies",
+          },
+        ]
       : []),
   ];
   const contextValue = useMemo(() => ({ setActionButton }), []);
