@@ -1,4 +1,7 @@
-import { extractSsoGroupsFromClaims, type IdpTeamSyncConfig } from "@archestra/shared";
+import {
+  extractSsoGroupsFromClaims,
+  type IdpTeamSyncConfig,
+} from "@archestra/shared";
 import { CacheKey, cacheManager } from "@/cache-manager";
 import logger from "@/logging";
 import { extractGroupsWithTemplate } from "@/templating";

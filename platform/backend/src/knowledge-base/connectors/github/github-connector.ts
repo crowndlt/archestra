@@ -1,6 +1,6 @@
 import { createPrivateKey } from "node:crypto";
-import { Octokit } from "@octokit/rest";
 import { TimeInMs } from "@archestra/shared";
+import { Octokit } from "@octokit/rest";
 import { SignJWT } from "jose";
 import type pino from "pino";
 import { LRUCacheManager } from "@/cache-manager";

@@ -1,8 +1,8 @@
-import type { User } from "./user";
 import type {
   SelectServiceAccount,
   SelectServiceAccountToken,
 } from "./service-account";
+import type { User } from "./user";
 
 declare module "fastify" {
   interface FastifyRequest {

@@ -1,9 +1,4 @@
 import {
-  isSpanContextValid,
-  context as otelContext,
-  trace,
-} from "@opentelemetry/api";
-import {
   AnthropicErrorTypes,
   ArchestraInternalErrorCode,
   BedrockErrorTypes,
@@ -19,6 +14,11 @@ import {
   VllmErrorTypes,
   ZhipuaiErrorTypes,
 } from "@archestra/shared";
+import {
+  isSpanContextValid,
+  context as otelContext,
+  trace,
+} from "@opentelemetry/api";
 import { APICallError, NoOutputGeneratedError, RetryError } from "ai";
 import logger from "@/logging";
 import { getActiveSessionId } from "@/observability/request-context";

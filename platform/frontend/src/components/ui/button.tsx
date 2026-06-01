@@ -63,4 +63,4 @@ type ButtonProps = React.ComponentProps<"button"> &
     asChild?: boolean;
   };
 
-export { Button, buttonVariants, type ButtonProps };
+export { Button, type ButtonProps, buttonVariants };

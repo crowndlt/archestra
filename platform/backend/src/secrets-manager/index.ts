@@ -17,7 +17,7 @@ import {
 } from "./vault-config";
 
 /** @public — re-exported for testability */
-export { SecretsManagerConfigurationError, getVaultConfigFromEnv };
+export { getVaultConfigFromEnv, SecretsManagerConfigurationError };
 
 class SecretManager {
   private static initialized = false;

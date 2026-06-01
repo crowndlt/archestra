@@ -1,7 +1,7 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import { type archestraApiTypes, DocsPage } from "@archestra/shared";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Ban,
   Code,
@@ -2454,7 +2454,7 @@ function additionalHeadersChangeRequiresReinstall(
   for (const [key, p] of prevMap) {
     const n = nextMap.get(key);
     if (!n) return true; // Removed
-    if (!p.required && Boolean(n.required)) return true; // Became required
+    if (!p.required && n.required) return true; // Became required
     if ((p.headerName ?? "") !== (n.headerName ?? "")) return true; // Routing
     if (Boolean(p.sensitive) !== Boolean(n.sensitive)) return true; // Storage
     // Static header value rotation. `value` only matters at runtime

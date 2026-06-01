@@ -1,6 +1,6 @@
-import * as Sentry from "@sentry/node";
 import { type RouteId, SupportedProviders } from "@archestra/shared";
 import { requiredEndpointPermissionsMap } from "@archestra/shared/access-control";
+import * as Sentry from "@sentry/node";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { betterAuth, hasPermission } from "@/auth";
 import config from "@/config";

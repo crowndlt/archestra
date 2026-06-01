@@ -269,7 +269,7 @@ function userConfigChangedBreakingly(
   for (const [key, p] of Object.entries(prev)) {
     const n = next[key];
     if (!n) return true; // Removed
-    if (!p.required && Boolean(n.required)) return true; // Became required
+    if (!p.required && n.required) return true; // Became required
     if (String(p.type ?? "") !== String(n.type ?? "")) return true; // Type changed
     if (String(p.headerName ?? "") !== String(n.headerName ?? "")) return true; // Routing changed
     if (Boolean(p.sensitive) !== Boolean(n.sensitive)) return true; // Storage moved

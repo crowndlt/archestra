@@ -1476,7 +1476,9 @@ describe("knowledge base routes", () => {
 
 describe("knowledge base permission configuration", () => {
   test("member permissions only allow read and query for knowledgeSource", async () => {
-    const { memberPermissions } = await import("@archestra/shared/access-control");
+    const { memberPermissions } = await import(
+      "@archestra/shared/access-control"
+    );
     expect(memberPermissions.knowledgeSource).toEqual(["read", "query"]);
     expect(memberPermissions.knowledgeSource).not.toContain("create");
     expect(memberPermissions.knowledgeSource).not.toContain("update");
@@ -1484,7 +1486,9 @@ describe("knowledge base permission configuration", () => {
   });
 
   test("admin permissions include full CRUD for knowledgeSource", async () => {
-    const { adminPermissions } = await import("@archestra/shared/access-control");
+    const { adminPermissions } = await import(
+      "@archestra/shared/access-control"
+    );
     expect(adminPermissions.knowledgeSource).toContain("read");
     expect(adminPermissions.knowledgeSource).toContain("create");
     expect(adminPermissions.knowledgeSource).toContain("update");

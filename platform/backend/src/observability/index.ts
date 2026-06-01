@@ -28,5 +28,5 @@ export async function initializeObservabilityMetrics(params?: {
   return labelKeys;
 }
 
-export { metrics };
 export * as tracing from "./tracing";
+export { metrics };

@@ -1,7 +1,7 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import { E2eTestId, GITHUB_REPO_NEW_ISSUE_URL } from "@archestra/shared";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   AlertCircle,
   ExternalLink,

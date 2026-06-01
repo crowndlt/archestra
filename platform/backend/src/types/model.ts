@@ -12,9 +12,15 @@ import {
 import { z } from "zod";
 import { schema } from "@/database";
 
-export type { ModelInputModality, ModelOutputModality } from "@archestra/shared";
+export type {
+  ModelInputModality,
+  ModelOutputModality,
+} from "@archestra/shared";
 // Re-export modality schemas and types from @archestra/shared for convenience
-export { ModelInputModalitySchema, ModelOutputModalitySchema } from "@archestra/shared";
+export {
+  ModelInputModalitySchema,
+  ModelOutputModalitySchema,
+} from "@archestra/shared";
 
 /**
  * Fields to extend for drizzle-zod schema generation.

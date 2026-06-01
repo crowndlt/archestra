@@ -32,7 +32,8 @@ const {
 }));
 
 vi.mock("@archestra/shared", async () => {
-  const actual = await vi.importActual<Record<string, unknown>>("@archestra/shared");
+  const actual =
+    await vi.importActual<Record<string, unknown>>("@archestra/shared");
   return {
     ...actual,
     archestraApiSdk: {

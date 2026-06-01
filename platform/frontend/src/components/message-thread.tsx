@@ -786,8 +786,8 @@ const MessageThread = ({
 export type {
   BlockedToolPart,
   DualLlmPart,
-  PolicyDeniedPart,
   PartialUIMessage,
+  PolicyDeniedPart,
 };
 
 // Type guard for tool-* prefixed parts (persisted tool calls from DB)

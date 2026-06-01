@@ -750,7 +750,7 @@ export function ScheduleTriggerDetailPage({
       return true;
     if (
       matchedAgent.scope === "personal" &&
-      !!currentUserId &&
+      currentUserId &&
       matchedAgent.authorId === currentUserId
     )
       return true;

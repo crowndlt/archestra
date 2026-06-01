@@ -313,7 +313,7 @@ export function userConfigChangedBreakingly(
   for (const [key, p] of Object.entries(prevMap)) {
     const n = nextMap[key];
     if (!n) return true;
-    if (!p.required && Boolean(n.required)) return true;
+    if (!p.required && n.required) return true;
     if (String(p.type ?? "") !== String(n.type ?? "")) return true;
     if (String(p.headerName ?? "") !== String(n.headerName ?? "")) return true;
     if (Boolean(p.sensitive) !== Boolean(n.sensitive)) return true;

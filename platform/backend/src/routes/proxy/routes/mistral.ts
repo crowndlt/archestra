@@ -6,8 +6,9 @@
  *
  * @see https://docs.mistral.ai/api
  */
-import fastifyHttpProxy from "@fastify/http-proxy";
+
 import { RouteId } from "@archestra/shared";
+import fastifyHttpProxy from "@fastify/http-proxy";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import config from "@/config";

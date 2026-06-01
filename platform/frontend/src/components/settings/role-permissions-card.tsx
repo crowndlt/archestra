@@ -1,6 +1,5 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   type Action,
   type Permissions,
@@ -9,6 +8,7 @@ import {
   resourceDescriptions,
   resourceLabels,
 } from "@archestra/shared";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Check,
   ChevronDown,

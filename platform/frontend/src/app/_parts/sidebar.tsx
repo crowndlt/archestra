@@ -1,5 +1,4 @@
 "use client";
-import { SignedIn, UserButton } from "@daveyplate/better-auth-ui";
 import {
   COMMUNITY_DOCS_URL,
   COMMUNITY_SLACK_URL,
@@ -8,6 +7,7 @@ import {
   GITHUB_REPO_URL,
 } from "@archestra/shared";
 import { requiredPagePermissionsMap } from "@archestra/shared/access-control";
+import { SignedIn, UserButton } from "@daveyplate/better-auth-ui";
 import {
   BookOpen,
   Bot,

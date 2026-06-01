@@ -1,5 +1,13 @@
 import { randomUUID } from "node:crypto";
 import {
+  isAgentTool,
+  isBrowserMcpTool,
+  MCP_APPS_CLIENT_EXTENSION_CAPABILITIES,
+  parseFullToolName,
+  TimeInMs,
+  TOOL_INVOCATION_APPROVAL_REQUIRED_AUTONOMOUS_REASON,
+} from "@archestra/shared";
+import {
   type McpUiResourceCsp,
   type McpUiResourcePermissions,
   type McpUiToolMeta,
@@ -11,14 +19,6 @@ import type {
   ContentBlock,
   EmbeddedResource,
 } from "@modelcontextprotocol/sdk/types.js";
-import {
-  isAgentTool,
-  isBrowserMcpTool,
-  MCP_APPS_CLIENT_EXTENSION_CAPABILITIES,
-  parseFullToolName,
-  TimeInMs,
-  TOOL_INVOCATION_APPROVAL_REQUIRED_AUTONOMOUS_REASON,
-} from "@archestra/shared";
 import { type JSONSchema7, jsonSchema, type Tool } from "ai";
 import { evaluateToolExecutionContextTrust } from "@/agents/context-trust";
 import {

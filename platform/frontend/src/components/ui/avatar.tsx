@@ -91,9 +91,9 @@ function AvatarBadge({ className, ...props }: React.ComponentProps<"span">) {
 
 export {
   Avatar,
-  AvatarImage,
+  AvatarBadge,
   AvatarFallback,
   AvatarGroup,
   AvatarGroupCount,
-  AvatarBadge,
+  AvatarImage,
 };

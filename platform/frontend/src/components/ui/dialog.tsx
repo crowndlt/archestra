@@ -219,8 +219,8 @@ function DialogForm({
 }
 
 export {
-  DialogBody,
   Dialog,
+  DialogBody,
   DialogClose,
   DialogContent,
   DialogDescription,

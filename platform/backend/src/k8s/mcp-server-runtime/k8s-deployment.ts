@@ -1,6 +1,4 @@
 import { PassThrough } from "node:stream";
-import type * as k8s from "@kubernetes/client-node";
-import type { Attach, Exec } from "@kubernetes/client-node";
 import {
   type ImagePullSecretConfig,
   type LocalConfigSchema,
@@ -8,6 +6,8 @@ import {
   type McpDeploymentState,
   TimeInMs,
 } from "@archestra/shared";
+import type * as k8s from "@kubernetes/client-node";
+import type { Attach, Exec } from "@kubernetes/client-node";
 import type z from "zod";
 import config from "@/config";
 import {
