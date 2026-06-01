@@ -21,17 +21,28 @@ export async function getK8sCapabilitiesFromApi(
 ): Promise<K8sCapabilities> {
   const ciliumNetworkPolicy =
     await hasCiliumNetworkPolicyResource(customObjectsApi);
+  const gkeFqdnNetworkPolicy =
+    await hasGkeFqdnNetworkPolicyResource(customObjectsApi);
+  const provider = ciliumNetworkPolicy
+    ? "cilium"
+    : gkeFqdnNetworkPolicy
+      ? "gke-fqdn"
+      : "kubernetes";
+  const supportsFqdn = ciliumNetworkPolicy || gkeFqdnNetworkPolicy;
 
   return {
     networkPolicy: {
       kubernetesNetworkPolicy: true,
       ciliumNetworkPolicy,
-      provider: ciliumNetworkPolicy ? "cilium" : "kubernetes",
-      supportsFqdn: ciliumNetworkPolicy,
+      gkeFqdnNetworkPolicy,
+      provider,
+      supportsFqdn,
       supportsHttpMethods: false,
-      message: ciliumNetworkPolicy
-        ? "CiliumNetworkPolicy API detected. Domain allowlists can be enforced by Cilium."
-        : "CiliumNetworkPolicy API not detected. Domain allowlists require Cilium; Kubernetes NetworkPolicy only enforces IP/CIDR egress.",
+      message: capabilityMessage({
+        ciliumNetworkPolicy,
+        gkeFqdnNetworkPolicy,
+        supportsFqdn,
+      }),
     },
   };
 }
@@ -63,11 +74,54 @@ async function hasCiliumNetworkPolicyResource(
   }
 }
 
+function capabilityMessage(params: {
+  ciliumNetworkPolicy: boolean;
+  gkeFqdnNetworkPolicy: boolean;
+  supportsFqdn: boolean;
+}): string {
+  if (params.ciliumNetworkPolicy) {
+    return "CiliumNetworkPolicy API detected. Domain allowlists can be enforced by Cilium.";
+  }
+  if (params.gkeFqdnNetworkPolicy) {
+    return "GKE FQDNNetworkPolicy API detected. Domain allowlists can be enforced by GKE.";
+  }
+  if (!params.supportsFqdn) {
+    return "No supported FQDN policy provider detected. Kubernetes NetworkPolicy only enforces IP/CIDR egress.";
+  }
+  return "Network policy capabilities detected.";
+}
+
+async function hasGkeFqdnNetworkPolicyResource(
+  customObjectsApi: k8s.CustomObjectsApi,
+): Promise<boolean> {
+  try {
+    const resourceList = await customObjectsApi.getAPIResources({
+      group: "networking.gke.io",
+      version: "v1alpha1",
+    });
+    return (
+      resourceList.resources?.some(
+        (resource) => resource.name === "fqdnnetworkpolicies",
+      ) ?? false
+    );
+  } catch (error) {
+    if (isK8sNotFoundError(error)) {
+      return false;
+    }
+    logger.warn(
+      { err: error },
+      "Failed to inspect GKE FQDN Kubernetes API resources",
+    );
+    return false;
+  }
+}
+
 function unavailableCapabilities(): K8sCapabilities {
   return {
     networkPolicy: {
       kubernetesNetworkPolicy: false,
       ciliumNetworkPolicy: false,
+      gkeFqdnNetworkPolicy: false,
       provider: "none",
       supportsFqdn: false,
       supportsHttpMethods: false,

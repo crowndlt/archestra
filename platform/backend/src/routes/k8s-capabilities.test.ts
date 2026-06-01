@@ -64,6 +64,7 @@ describe("k8s capabilities routes", () => {
       networkPolicy: {
         kubernetesNetworkPolicy: true,
         ciliumNetworkPolicy: true,
+        gkeFqdnNetworkPolicy: false,
         provider: "cilium",
         supportsFqdn: true,
         supportsHttpMethods: false,
@@ -84,6 +85,7 @@ describe("k8s capabilities routes", () => {
       networkPolicy: {
         kubernetesNetworkPolicy: true,
         ciliumNetworkPolicy: true,
+        gkeFqdnNetworkPolicy: false,
         provider: "cilium",
         supportsFqdn: true,
         supportsHttpMethods: false,

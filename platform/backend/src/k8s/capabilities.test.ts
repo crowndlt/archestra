@@ -4,9 +4,10 @@ import { getK8sCapabilitiesFromApi } from "./capabilities";
 describe("Kubernetes capability inspection", () => {
   test("reports Cilium FQDN support when the CiliumNetworkPolicy CRD exists", async () => {
     const customObjectsApi = {
-      getAPIResources: vi.fn().mockResolvedValue({
-        resources: [{ name: "ciliumnetworkpolicies" }],
-      }),
+      getAPIResources: vi.fn(async ({ group }: { group: string }) => ({
+        resources:
+          group === "cilium.io" ? [{ name: "ciliumnetworkpolicies" }] : [],
+      })),
     };
 
     const capabilities = await getK8sCapabilitiesFromApi(
@@ -20,6 +21,7 @@ describe("Kubernetes capability inspection", () => {
     expect(capabilities.networkPolicy).toMatchObject({
       kubernetesNetworkPolicy: true,
       ciliumNetworkPolicy: true,
+      gkeFqdnNetworkPolicy: false,
       provider: "cilium",
       supportsFqdn: true,
       supportsHttpMethods: false,
@@ -38,8 +40,33 @@ describe("Kubernetes capability inspection", () => {
     expect(capabilities.networkPolicy).toMatchObject({
       kubernetesNetworkPolicy: true,
       ciliumNetworkPolicy: false,
+      gkeFqdnNetworkPolicy: false,
       provider: "kubernetes",
       supportsFqdn: false,
+      supportsHttpMethods: false,
+    });
+  });
+
+  test("reports GKE FQDN support when the FQDNNetworkPolicy CRD exists", async () => {
+    const customObjectsApi = {
+      getAPIResources: vi.fn(async ({ group }: { group: string }) => ({
+        resources:
+          group === "networking.gke.io"
+            ? [{ name: "fqdnnetworkpolicies" }]
+            : [],
+      })),
+    };
+
+    const capabilities = await getK8sCapabilitiesFromApi(
+      customObjectsApi as never,
+    );
+
+    expect(capabilities.networkPolicy).toMatchObject({
+      kubernetesNetworkPolicy: true,
+      ciliumNetworkPolicy: false,
+      gkeFqdnNetworkPolicy: true,
+      provider: "gke-fqdn",
+      supportsFqdn: true,
       supportsHttpMethods: false,
     });
   });

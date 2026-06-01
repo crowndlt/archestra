@@ -98,12 +98,66 @@ export function buildManagedCiliumNetworkPolicy(params: {
   };
 }
 
+export function buildManagedGkeFqdnNetworkPolicy(params: {
+  name: string;
+  podSelectorLabels: Record<string, string>;
+  effectivePolicy: EffectiveNetworkPolicy;
+}): Record<string, unknown> {
+  const policy = params.effectivePolicy.policy;
+  if (!policy) {
+    throw new Error("Cannot build a managed FQDNNetworkPolicy without a policy");
+  }
+
+  const labels = sanitizeMetadataLabels({
+    app: "mcp-server",
+    "app.kubernetes.io/managed-by": "archestra",
+    "archestra.io/resource": "mcp-network-policy",
+    "archestra.io/network-policy-id": policy.id,
+  });
+
+  return {
+    apiVersion: "networking.gke.io/v1alpha1",
+    kind: "FQDNNetworkPolicy",
+    metadata: {
+      name: params.name,
+      labels,
+      annotations: buildPolicyAnnotations(params.effectivePolicy),
+    },
+    spec: {
+      podSelector: {
+        matchLabels: params.podSelectorLabels,
+      },
+      egress: [
+        {
+          matches: ciliumDomainRules(policy).map((domain) =>
+            "matchPattern" in domain
+              ? { pattern: domain.matchPattern }
+              : { name: domain.matchName },
+          ),
+        },
+      ],
+    },
+  };
+}
+
 export function shouldUseCiliumNetworkPolicy(params: {
   effectivePolicy?: EffectiveNetworkPolicy | null;
   capabilities?: K8sNetworkPolicyCapabilities | null;
 }): boolean {
   return (
     params.capabilities?.ciliumNetworkPolicy === true &&
+    params.effectivePolicy?.policy?.egressMode === "restricted" &&
+    ciliumDomainRules(params.effectivePolicy.policy).length > 0
+  );
+}
+
+export function shouldUseGkeFqdnNetworkPolicy(params: {
+  effectivePolicy?: EffectiveNetworkPolicy | null;
+  capabilities?: K8sNetworkPolicyCapabilities | null;
+}): boolean {
+  return (
+    params.capabilities?.ciliumNetworkPolicy !== true &&
+    params.capabilities?.gkeFqdnNetworkPolicy === true &&
     params.effectivePolicy?.policy?.egressMode === "restricted" &&
     ciliumDomainRules(params.effectivePolicy.policy).length > 0
   );
@@ -229,7 +283,7 @@ function buildPolicyAnnotations(
     "archestra.io/network-policy-allowed-http-methods":
       policy.allowedHttpMethods,
     "archestra.io/network-policy-domain-enforcement":
-      "requires-ciliumnetworkpolicy",
+      "requires-fqdn-policy-provider",
     "archestra.io/network-policy-http-method-enforcement": "not-supported",
   };
 }

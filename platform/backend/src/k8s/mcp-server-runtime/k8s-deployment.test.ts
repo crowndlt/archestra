@@ -3677,6 +3677,7 @@ describe("K8sDeployment.applyK8sNetworkPolicy", () => {
       networkPolicyCapabilities: {
         kubernetesNetworkPolicy: true,
         ciliumNetworkPolicy: true,
+        gkeFqdnNetworkPolicy: false,
         provider: "cilium",
         supportsFqdn: true,
         supportsHttpMethods: false,
@@ -3733,6 +3734,7 @@ describe("K8sDeployment.applyK8sNetworkPolicy", () => {
       networkPolicyCapabilities: {
         kubernetesNetworkPolicy: true,
         ciliumNetworkPolicy: false,
+        gkeFqdnNetworkPolicy: false,
         provider: "kubernetes",
         supportsFqdn: false,
         supportsHttpMethods: false,
@@ -3751,6 +3753,66 @@ describe("K8sDeployment.applyK8sNetworkPolicy", () => {
       }),
     );
     expect(createNamespacedCustomObject).not.toHaveBeenCalled();
+  });
+
+  test("creates GKE FQDNNetworkPolicy alongside Kubernetes NetworkPolicy when GKE FQDN rules are available", async () => {
+    const createNamespacedCustomObject = vi.fn().mockResolvedValue({});
+    const deleteNamespacedCustomObject = vi
+      .fn()
+      .mockRejectedValue({ statusCode: 404 });
+    const createNamespacedNetworkPolicy = vi.fn().mockResolvedValue({});
+
+    const deployment = new K8sDeployment({
+      mcpServer: makeNetworkPolicyTestServer(),
+      k8sApi: {} as k8s.CoreV1Api,
+      k8sAppsApi: {} as k8s.AppsV1Api,
+      k8sNetworkingApi: {
+        createNamespacedNetworkPolicy,
+        deleteNamespacedNetworkPolicy: vi.fn().mockRejectedValue({
+          statusCode: 404,
+        }),
+      } as unknown as k8s.NetworkingV1Api,
+      k8sCustomObjectsApi: {
+        createNamespacedCustomObject,
+        deleteNamespacedCustomObject,
+      } as unknown as k8s.CustomObjectsApi,
+      k8sAttach: {} as Attach,
+      k8sLog: {} as Log,
+      k8sExec: {} as Exec,
+      namespace: "default",
+      catalogItem: null,
+      effectiveNetworkPolicy: makeNetworkPolicy({
+        allowedDomains: ["api.example.com"],
+      }),
+      networkPolicyCapabilities: {
+        kubernetesNetworkPolicy: true,
+        ciliumNetworkPolicy: false,
+        gkeFqdnNetworkPolicy: true,
+        provider: "gke-fqdn",
+        supportsFqdn: true,
+        supportsHttpMethods: false,
+        message: null,
+      },
+    });
+
+    await deployment.applyK8sNetworkPolicy();
+
+    expect(createNamespacedNetworkPolicy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        namespace: "default",
+        body: expect.objectContaining({
+          kind: "NetworkPolicy",
+        }),
+      }),
+    );
+    expect(createNamespacedCustomObject).toHaveBeenCalledWith(
+      expect.objectContaining({
+        group: "networking.gke.io",
+        version: "v1alpha1",
+        namespace: "default",
+        plural: "fqdnnetworkpolicies",
+      }),
+    );
   });
 });
 

@@ -80,15 +80,22 @@ For example, every catalog entry tagged `department: finance` is automatically w
 
 ## Environments
 
-An environment is an organization-level deployment target — for example `sandbox`, `staging`, or `production`. Admins manage the list of environments, and each carries a name, an optional Kubernetes namespace, and an optional default network policy. The registry form lets you assign a catalog entry to one environment.
+An environment is an organization-level deployment target — for example `sandbox`, `staging`, or `production`. Admins manage the list of environments, and each carries a name, an optional Kubernetes namespace, and an optional default network policy.
 
-An environment can be marked **restricted**. Only members with the `environment:admin` permission can assign catalog entries to a restricted environment; in the registry form it appears disabled for everyone else. Unrestricted environments and Default stay open to anyone who can create catalog entries.
-
-Every entry starts on the virtual **Default** environment, which is not a stored row — it simply means "no environment assigned". Selecting Default in the registry form clears the assignment. Deleting an environment moves its entries back to Default rather than removing them.
+An environment can be marked **restricted**. Only members with the `environment:admin` permission can assign catalog entries to a restricted environment. Unrestricted environments and Default stay open to anyone who can create MCP registry catalog entries.
 
 ### Network Policies
 
-Network policies are reusable egress profiles. They can disable internet egress, allow all egress, or restrict egress to selected IP/CIDR ranges. Domain presets and custom domains require Cilium's `CiliumNetworkPolicy`; Kubernetes `NetworkPolicy` alone only enforces IP/CIDR rules. See the Kubernetes [NetworkPolicy](https://kubernetes.io/docs/concepts/services-networking/network-policies/) and Cilium [DNS policy](https://docs.cilium.io/en/latest/security/dns/) docs for the underlying enforcement models.
+Network policies are reusable egress profiles. They can disable internet egress, allow all egress, or restrict egress to selected IP/CIDR ranges. Domain presets and custom domains require a supported FQDN policy provider; Kubernetes `NetworkPolicy` alone only enforces IP/CIDR rules.
+
+| Cluster provider     | IP/CIDR rules                                                         | Domain rules                                                         |
+| -------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| EKS with AWS VPC CNI | Kubernetes `NetworkPolicy` when network policy enforcement is enabled | Not supported by AWS VPC CNI                                         |
+| AKS                  | Kubernetes `NetworkPolicy` when network policy enforcement is enabled | Cilium `CiliumNetworkPolicy` when the cluster exposes the Cilium CRD |
+| GKE                  | Kubernetes `NetworkPolicy` when network policy enforcement is enabled | GKE `FQDNNetworkPolicy` when GKE Dataplane V2 and FQDN network policy are enabled |
+| Self-managed Cilium  | Kubernetes `NetworkPolicy` or Cilium policy                           | Cilium `CiliumNetworkPolicy`                                         |
+
+See Kubernetes [NetworkPolicy](https://kubernetes.io/docs/concepts/services-networking/network-policies/), Cilium [DNS policy](https://docs.cilium.io/en/latest/security/dns/), and GKE [FQDN network policy](https://cloud.google.com/kubernetes-engine/docs/how-to/fqdn-network-policies) docs for provider details.
 
 #### Domain Presets
 

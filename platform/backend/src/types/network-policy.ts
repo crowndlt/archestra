@@ -94,7 +94,8 @@ export const EffectiveNetworkPolicySchema = z.object({
 export const K8sNetworkPolicyCapabilitiesSchema = z.object({
   kubernetesNetworkPolicy: z.boolean(),
   ciliumNetworkPolicy: z.boolean(),
-  provider: z.enum(["cilium", "kubernetes", "none"]),
+  gkeFqdnNetworkPolicy: z.boolean(),
+  provider: z.enum(["cilium", "gke-fqdn", "kubernetes", "none"]),
   supportsFqdn: z.boolean(),
   supportsHttpMethods: z.boolean(),
   message: z.string().nullable(),

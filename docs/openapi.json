@@ -121937,10 +121937,14 @@
                         "ciliumNetworkPolicy": {
                           "type": "boolean"
                         },
+                        "gkeFqdnNetworkPolicy": {
+                          "type": "boolean"
+                        },
                         "provider": {
                           "type": "string",
                           "enum": [
                             "cilium",
+                            "gke-fqdn",
                             "kubernetes",
                             "none"
                           ]
@@ -121959,6 +121963,7 @@
                       "required": [
                         "kubernetesNetworkPolicy",
                         "ciliumNetworkPolicy",
+                        "gkeFqdnNetworkPolicy",
                         "provider",
                         "supportsFqdn",
                         "supportsHttpMethods",

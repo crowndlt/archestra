@@ -2,10 +2,12 @@ import { describe, expect, test } from "@/test";
 import type { EffectiveNetworkPolicy } from "@/types";
 import {
   buildManagedCiliumNetworkPolicy,
+  buildManagedGkeFqdnNetworkPolicy,
   buildManagedNetworkPolicy,
   constructManagedNetworkPolicyName,
   shouldManageK8sNetworkPolicy,
   shouldUseCiliumNetworkPolicy,
+  shouldUseGkeFqdnNetworkPolicy,
 } from "./network-policy";
 
 describe("managed MCP Kubernetes NetworkPolicy", () => {
@@ -27,7 +29,7 @@ describe("managed MCP Kubernetes NetworkPolicy", () => {
         annotations: {
           "archestra.io/network-policy-egress-mode": "off",
           "archestra.io/network-policy-domain-enforcement":
-            "requires-ciliumnetworkpolicy",
+            "requires-fqdn-policy-provider",
         },
       },
       spec: {
@@ -88,7 +90,7 @@ describe("managed MCP Kubernetes NetworkPolicy", () => {
       "archestra.io/network-policy-allowed-cidrs": "203.0.113.0/24",
       "archestra.io/network-policy-allowed-http-methods": "read_only",
       "archestra.io/network-policy-domain-enforcement":
-        "requires-ciliumnetworkpolicy",
+        "requires-fqdn-policy-provider",
       "archestra.io/network-policy-http-method-enforcement": "not-supported",
     });
   });
@@ -152,6 +154,41 @@ describe("managed MCP Kubernetes NetworkPolicy", () => {
     });
   });
 
+  test("builds a GKE FQDN policy with exact and wildcard domains", () => {
+    const manifest = buildManagedGkeFqdnNetworkPolicy({
+      name: "mcp-egress-test",
+      podSelectorLabels: {
+        app: "mcp-server",
+        "mcp-server-id": "server-id",
+      },
+      effectivePolicy: makeEffectivePolicy({
+        egressMode: "restricted",
+        allowedDomains: ["api.example.com", "*.example.org"],
+      }),
+    });
+
+    expect(manifest).toMatchObject({
+      apiVersion: "networking.gke.io/v1alpha1",
+      kind: "FQDNNetworkPolicy",
+      spec: {
+        podSelector: {
+          matchLabels: {
+            app: "mcp-server",
+            "mcp-server-id": "server-id",
+          },
+        },
+        egress: [
+          {
+            matches: [
+              { name: "api.example.com" },
+              { pattern: "*.example.org" },
+            ],
+          },
+        ],
+      },
+    });
+  });
+
   test("uses Cilium only when Cilium is available and domain rules exist", () => {
     const policy = makeEffectivePolicy({
       egressMode: "restricted",
@@ -164,6 +201,7 @@ describe("managed MCP Kubernetes NetworkPolicy", () => {
         capabilities: {
           kubernetesNetworkPolicy: true,
           ciliumNetworkPolicy: true,
+          gkeFqdnNetworkPolicy: false,
           provider: "cilium",
           supportsFqdn: true,
           supportsHttpMethods: false,
@@ -177,8 +215,45 @@ describe("managed MCP Kubernetes NetworkPolicy", () => {
         capabilities: {
           kubernetesNetworkPolicy: true,
           ciliumNetworkPolicy: false,
+          gkeFqdnNetworkPolicy: false,
           provider: "kubernetes",
           supportsFqdn: false,
+          supportsHttpMethods: false,
+          message: null,
+        },
+      }),
+    ).toBe(false);
+  });
+
+  test("uses GKE FQDN policy when GKE is available and Cilium is not", () => {
+    const policy = makeEffectivePolicy({
+      egressMode: "restricted",
+      allowedDomains: ["api.example.com"],
+    });
+
+    expect(
+      shouldUseGkeFqdnNetworkPolicy({
+        effectivePolicy: policy,
+        capabilities: {
+          kubernetesNetworkPolicy: true,
+          ciliumNetworkPolicy: false,
+          gkeFqdnNetworkPolicy: true,
+          provider: "gke-fqdn",
+          supportsFqdn: true,
+          supportsHttpMethods: false,
+          message: null,
+        },
+      }),
+    ).toBe(true);
+    expect(
+      shouldUseGkeFqdnNetworkPolicy({
+        effectivePolicy: policy,
+        capabilities: {
+          kubernetesNetworkPolicy: true,
+          ciliumNetworkPolicy: true,
+          gkeFqdnNetworkPolicy: true,
+          provider: "cilium",
+          supportsFqdn: true,
           supportsHttpMethods: false,
           message: null,
         },

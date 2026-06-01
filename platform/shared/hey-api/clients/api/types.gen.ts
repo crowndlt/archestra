@@ -32265,7 +32265,8 @@ export type GetK8sCapabilitiesResponses = {
         networkPolicy: {
             kubernetesNetworkPolicy: boolean;
             ciliumNetworkPolicy: boolean;
-            provider: 'cilium' | 'kubernetes' | 'none';
+            gkeFqdnNetworkPolicy: boolean;
+            provider: 'cilium' | 'gke-fqdn' | 'kubernetes' | 'none';
             supportsFqdn: boolean;
             supportsHttpMethods: boolean;
             message: string | null;

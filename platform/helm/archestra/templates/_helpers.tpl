@@ -312,6 +312,9 @@ grant exactly the same access (no drift).
 - apiGroups: ["cilium.io"]
   resources: ["ciliumnetworkpolicies"]
   verbs: ["get", "list", "create", "update", "patch", "delete", "watch"]
+- apiGroups: ["networking.gke.io"]
+  resources: ["fqdnnetworkpolicies"]
+  verbs: ["get", "list", "create", "update", "patch", "delete", "watch"]
 {{- end }}
 
 {{/*

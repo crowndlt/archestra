@@ -47,6 +47,8 @@ import { useSetMcpRegistryAction } from "../layout";
 
 const CILIUM_DNS_POLICY_DOCS_URL =
   "https://docs.cilium.io/en/latest/security/dns/";
+const GKE_FQDN_POLICY_DOCS_URL =
+  "https://cloud.google.com/kubernetes-engine/docs/how-to/fqdn-network-policies";
 const NETWORK_POLICY_DOCS_URL = getDocsUrl(
   DocsPage.PlatformPrivateRegistry,
   "network-policies",
@@ -293,25 +295,43 @@ function NetworkPolicyEditorDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogBody className="space-y-4">
-          {!supportsFqdn ? (
+          {capabilities?.networkPolicy.provider === "none" ? (
             <Alert variant="info">
               <Info className="h-4 w-4" />
-              <AlertTitle>Domain allowlists require Cilium</AlertTitle>
+              <AlertTitle>Network policy enforcement unavailable</AlertTitle>
+              <AlertDescription className="block leading-6">
+                Kubernetes access is not configured, or network policy
+                capabilities could not be inspected. Enable a Kubernetes network
+                policy provider before relying on these policies.
+              </AlertDescription>
+            </Alert>
+          ) : !supportsFqdn ? (
+            <Alert variant="info">
+              <Info className="h-4 w-4" />
+              <AlertTitle>Domain allowlists unavailable</AlertTitle>
               <AlertDescription className="block leading-6">
                 <p>
-                  Kubernetes{" "}
+                  Standard Kubernetes{" "}
                   <code className="inline rounded bg-muted px-1 py-0.5 font-mono text-[0.85em]">
                     NetworkPolicy
                   </code>{" "}
-                  supports IP/CIDR rules. Domain rules need{" "}
+                  supports IP/CIDR rules only. Enable a supported FQDN policy
+                  provider such as Cilium{" "}
                   <code className="inline rounded bg-muted px-1 py-0.5 font-mono text-[0.85em]">
                     CiliumNetworkPolicy
+                  </code>{" "}
+                  or GKE{" "}
+                  <code className="inline rounded bg-muted px-1 py-0.5 font-mono text-[0.85em]">
+                    FQDNNetworkPolicy
                   </code>
                   .
                 </p>
-                <p className="mt-2">
+                <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
                   <ExternalDocsLink href={CILIUM_DNS_POLICY_DOCS_URL}>
-                    View Cilium DNS policy docs
+                    Cilium DNS policy docs
+                  </ExternalDocsLink>
+                  <ExternalDocsLink href={GKE_FQDN_POLICY_DOCS_URL}>
+                    GKE FQDN policy docs
                   </ExternalDocsLink>
                 </p>
               </AlertDescription>
@@ -371,7 +391,8 @@ function NetworkPolicyEditorDialog({
               description={
                 <>
                   Adds a maintained domain allowlist for common dependency or
-                  package manager traffic.{" "}
+                  package manager traffic. Requires a supported FQDN policy
+                  provider.{" "}
                   <ExternalDocsLink href={DOMAIN_PRESETS_DOCS_URL}>
                     View presets
                   </ExternalDocsLink>
