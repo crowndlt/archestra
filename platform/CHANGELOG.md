@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.2.55](https://github.com/archestra-ai/archestra/compare/platform-v1.2.54...platform-v1.2.55) (2026-06-01)
+
+
+### Features
+
+* **mcp-catalog:** clone catalog items, with tools + guardrails inheritance ([#5203](https://github.com/archestra-ai/archestra/issues/5203)) ([572f618](https://github.com/archestra-ai/archestra/commit/572f618f03f8f5e3fa274b05b022fd67f38ce1de))
+
+
+### Bug Fixes
+
+* **chat:** dedupe unavailable tool stream errors ([#5170](https://github.com/archestra-ai/archestra/issues/5170)) ([0609a85](https://github.com/archestra-ai/archestra/commit/0609a85acc2e4a0a3ca73813f3cf0f1fdc66c940))
+* **frontend:** derive chat MCP App canvases from messages; independent sidebar scroll ([#5185](https://github.com/archestra-ai/archestra/issues/5185)) ([aeb55a8](https://github.com/archestra-ai/archestra/commit/aeb55a8908956ba8f77a546db79ab3b01e967482))
+* **mcp-gateway:** promote validateExternalIdpToken catch debug-&gt;warn ([#5193](https://github.com/archestra-ai/archestra/issues/5193)) ([b85d913](https://github.com/archestra-ai/archestra/commit/b85d913af5b1cc02ba7d6b2e1ab495cb8346d52c))
+* reduce Next dev cold compile overhead ([#5180](https://github.com/archestra-ai/archestra/issues/5180)) ([f152a4c](https://github.com/archestra-ai/archestra/commit/f152a4c2b615e7d38d418426d321252bea2e351f))
+
+
+### Code Refactoring
+
+* clean up dead sandbox and compaction TS ([#5158](https://github.com/archestra-ai/archestra/issues/5158)) ([a132de6](https://github.com/archestra-ai/archestra/commit/a132de6c0b0e686d27e2740241bd92c91b60b21b))
+* genericize sandbox runtime wrapper (no behavior change) ([#5181](https://github.com/archestra-ai/archestra/issues/5181)) ([da9ba55](https://github.com/archestra-ai/archestra/commit/da9ba559b00dfec864f1067d5a8c0b92e47989d8))
+* introduce backend seam in sandbox-core ([#5186](https://github.com/archestra-ai/archestra/issues/5186)) ([f60c307](https://github.com/archestra-ai/archestra/commit/f60c30775d7adcd59fac0b298960632ad1fb9c6d))
+
+
+### Miscellaneous Chores
+
+* **deps:** move ai to pnpm catalog ([#5187](https://github.com/archestra-ai/archestra/issues/5187)) ([4094166](https://github.com/archestra-ai/archestra/commit/4094166249bdc026e0a16ed9eef12386b62d7655))
+* **deps:** move better-auth family to pnpm catalog ([#5137](https://github.com/archestra-ai/archestra/issues/5137)) ([ee1ac3e](https://github.com/archestra-ai/archestra/commit/ee1ac3e5b5a108fad1ced764621366d1f329f8f2))
+* extract project Claude skills ([#5190](https://github.com/archestra-ai/archestra/issues/5190)) ([b8a4b89](https://github.com/archestra-ai/archestra/commit/b8a4b89959ff9fe34ae4f2533eaded6bf2fb6176))
+* **gitignore:** ignore local *.kubeconfig files ([#5198](https://github.com/archestra-ai/archestra/issues/5198)) ([e274b7a](https://github.com/archestra-ai/archestra/commit/e274b7adb7878116de9cea5bc77a7d3e27d11549))
+
 ## [1.2.54](https://github.com/archestra-ai/archestra/compare/platform-v1.2.53...platform-v1.2.54) (2026-05-31)
 
 
