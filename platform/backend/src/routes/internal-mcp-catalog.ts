@@ -408,6 +408,7 @@ const internalMcpCatalogRoutes: FastifyPluginAsyncZod = async (fastify) => {
           throw new ApiError(400, "Environment not found");
         }
       }
+
       const catalogItem = await InternalMcpCatalogModel.create(restBody, {
         organizationId: request.organizationId,
         authorId: request.user.id,
@@ -598,6 +599,7 @@ const internalMcpCatalogRoutes: FastifyPluginAsyncZod = async (fastify) => {
       if (restBody.scope && restBody.scope !== "team") {
         delete restBody.teams;
       }
+
       let clientSecretId = originalCatalogItem.clientSecretId;
       let localConfigSecretId = originalCatalogItem.localConfigSecretId;
 

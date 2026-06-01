@@ -240,6 +240,7 @@ export function transformFormToApiData(
 
   // Deployment environment assignment (null = the default environment)
   data.environmentId = values.environmentId ?? null;
+
   return data;
 }
 

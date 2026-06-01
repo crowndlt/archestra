@@ -171,6 +171,7 @@ const mcpServerRoutes: FastifyPluginAsyncZod = async (fastify) => {
         ...restDataFromRequestBody,
         serverType: "local",
       };
+
       // Set owner_id and userId to current user
       serverData.ownerId = user.id;
       serverData.userId = user.id;

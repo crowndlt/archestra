@@ -108,6 +108,7 @@ const ExternalSecretSelector = lazy(
 // Select cannot use an empty-string item value, so a sentinel maps to `null`
 // (no environment assigned).
 const ENVIRONMENT_DEFAULT_VALUE = "__default__";
+
 interface McpCatalogFormProps {
   mode: "create" | "edit";
   initialValues?: archestraApiTypes.GetInternalMcpCatalogResponses["200"][number];
@@ -920,7 +921,6 @@ export function McpCatalogForm({
                                   : value,
                               )
                             }
-                            disabled={mode === "edit"}
                           >
                             <SelectTrigger className="w-full">
                               <SelectValue />
