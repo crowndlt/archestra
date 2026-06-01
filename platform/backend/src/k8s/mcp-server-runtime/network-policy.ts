@@ -142,18 +142,43 @@ function buildCiliumEgressRules(
   }
 
   const rules: Array<Record<string, unknown>> = [];
+  const toFQDNs = ciliumDomainRules(policy);
+  if (toFQDNs.length > 0) {
+    rules.push(buildCiliumDnsEgressRule());
+  }
+
   if (policy.allowedCidrs.length > 0) {
     rules.push({
       toCIDRSet: policy.allowedCidrs.map((cidr) => ({ cidr })),
     });
   }
 
-  const toFQDNs = ciliumDomainRules(policy);
   if (toFQDNs.length > 0) {
     rules.push({ toFQDNs });
   }
 
   return rules;
+}
+
+function buildCiliumDnsEgressRule(): Record<string, unknown> {
+  return {
+    toEndpoints: [
+      {
+        matchLabels: {
+          "k8s:io.kubernetes.pod.namespace": "kube-system",
+          "k8s:k8s-app": "kube-dns",
+        },
+      },
+    ],
+    toPorts: [
+      {
+        ports: [{ port: "53", protocol: "ANY" }],
+        rules: {
+          dns: [{ matchPattern: "*" }],
+        },
+      },
+    ],
+  };
 }
 
 function buildDnsEgressRule(): k8s.V1NetworkPolicyEgressRule {

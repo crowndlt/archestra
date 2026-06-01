@@ -90,9 +90,29 @@ Every entry starts on the virtual **Default** environment, which is not a stored
 
 Network policies are reusable egress profiles. They can disable internet egress, allow all egress, or restrict egress to selected IP/CIDR ranges. Domain presets and custom domains require Cilium's `CiliumNetworkPolicy`; Kubernetes `NetworkPolicy` alone only enforces IP/CIDR rules. See the Kubernetes [NetworkPolicy](https://kubernetes.io/docs/concepts/services-networking/network-policies/) and Cilium [DNS policy](https://docs.cilium.io/en/latest/security/dns/) docs for the underlying enforcement models.
 
-MCP servers inherit the network policy from their assigned environment. If the environment has no policy, Archestra uses the platform default.
+#### Domain Presets
 
-Create and edit network policies from the organization-level network policy page, then assign them to environments.
+##### Common Dependencies
+
+```text
+github.com
+*.github.com
+raw.githubusercontent.com
+objects.githubusercontent.com
+registry.npmjs.org
+pypi.org
+files.pythonhosted.org
+```
+
+##### Package Managers
+
+```text
+registry.npmjs.org
+pypi.org
+files.pythonhosted.org
+registry-1.docker.io
+production.cloudflare.docker.com
+```
 
 ## From Registry To Gateway
 

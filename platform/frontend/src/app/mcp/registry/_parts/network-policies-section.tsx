@@ -51,6 +51,10 @@ const NETWORK_POLICY_DOCS_URL = getDocsUrl(
   DocsPage.PlatformPrivateRegistry,
   "network-policies",
 );
+const DOMAIN_PRESETS_DOCS_URL = getDocsUrl(
+  DocsPage.PlatformPrivateRegistry,
+  "domain-presets",
+);
 
 type EgressMode = NetworkPolicyWithReferences["egressMode"];
 type DomainPreset = NetworkPolicyWithReferences["domainPreset"];
@@ -276,7 +280,7 @@ function NetworkPolicyEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden">
+      <DialogContent className="max-w-xl max-h-[85vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>
             {policy ? "Edit network policy" : "Add network policy"}
@@ -293,19 +297,23 @@ function NetworkPolicyEditorDialog({
             <Alert variant="info">
               <Info className="h-4 w-4" />
               <AlertTitle>Domain allowlists require Cilium</AlertTitle>
-              <AlertDescription>
-                Kubernetes{" "}
-                <code className="rounded bg-muted px-1 py-0.5 font-mono">
-                  NetworkPolicy
-                </code>{" "}
-                supports IP/CIDR rules. Domain rules need{" "}
-                <code className="rounded bg-muted px-1 py-0.5 font-mono">
-                  CiliumNetworkPolicy
-                </code>
-                .{" "}
-                <ExternalDocsLink href={CILIUM_DNS_POLICY_DOCS_URL}>
-                  View Cilium DNS policy docs
-                </ExternalDocsLink>
+              <AlertDescription className="block leading-6">
+                <p>
+                  Kubernetes{" "}
+                  <code className="inline rounded bg-muted px-1 py-0.5 font-mono text-[0.85em]">
+                    NetworkPolicy
+                  </code>{" "}
+                  supports IP/CIDR rules. Domain rules need{" "}
+                  <code className="inline rounded bg-muted px-1 py-0.5 font-mono text-[0.85em]">
+                    CiliumNetworkPolicy
+                  </code>
+                  .
+                </p>
+                <p className="mt-2">
+                  <ExternalDocsLink href={CILIUM_DNS_POLICY_DOCS_URL}>
+                    View Cilium DNS policy docs
+                  </ExternalDocsLink>
+                </p>
               </AlertDescription>
             </Alert>
           ) : null}
@@ -360,7 +368,15 @@ function NetworkPolicyEditorDialog({
           <div className="space-y-2">
             <FieldLabel
               label="Domain preset"
-              description="Adds a maintained domain allowlist for common dependency or package manager traffic. Domain presets require CiliumNetworkPolicy support in the cluster."
+              description={
+                <>
+                  Adds a maintained domain allowlist for common dependency or
+                  package manager traffic.{" "}
+                  <ExternalDocsLink href={DOMAIN_PRESETS_DOCS_URL}>
+                    View presets
+                  </ExternalDocsLink>
+                </>
+              }
             />
             <Select
               value={domainPreset}
@@ -442,7 +458,7 @@ function FieldLabel({
 }: {
   htmlFor?: string;
   label: string;
-  description: string;
+  description: React.ReactNode;
 }) {
   return (
     <div className="flex items-center gap-1.5">

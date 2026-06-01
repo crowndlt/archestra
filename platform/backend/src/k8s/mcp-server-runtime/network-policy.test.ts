@@ -120,6 +120,24 @@ describe("managed MCP Kubernetes NetworkPolicy", () => {
         },
         egress: [
           {
+            toEndpoints: [
+              {
+                matchLabels: {
+                  "k8s:io.kubernetes.pod.namespace": "kube-system",
+                  "k8s:k8s-app": "kube-dns",
+                },
+              },
+            ],
+            toPorts: [
+              {
+                ports: [{ port: "53", protocol: "ANY" }],
+                rules: {
+                  dns: [{ matchPattern: "*" }],
+                },
+              },
+            ],
+          },
+          {
             toCIDRSet: [{ cidr: "203.0.113.0/24" }],
           },
           {
