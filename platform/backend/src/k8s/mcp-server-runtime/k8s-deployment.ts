@@ -21,6 +21,7 @@ import { InternalMcpCatalogModel } from "@/models";
 import type {
   EffectiveNetworkPolicy,
   InternalMcpCatalog,
+  K8sNetworkPolicyCapabilities,
   McpServer,
 } from "@/types";
 import {
@@ -28,9 +29,11 @@ import {
   resolvePlaceholders,
 } from "./k8s-yaml-generator";
 import {
+  buildManagedCiliumNetworkPolicy,
   buildManagedNetworkPolicy,
   constructManagedNetworkPolicyName,
   shouldManageK8sNetworkPolicy,
+  shouldUseCiliumNetworkPolicy,
 } from "./network-policy";
 import type { K8sDeploymentStatusSummary } from "./schemas";
 
@@ -206,6 +209,7 @@ interface K8sDeploymentOptions {
   k8sApi: k8s.CoreV1Api;
   k8sAppsApi: k8s.AppsV1Api;
   k8sNetworkingApi?: k8s.NetworkingV1Api;
+  k8sCustomObjectsApi?: k8s.CustomObjectsApi;
   k8sAttach: Attach;
   k8sLog: k8s.Log;
   namespace: string;
@@ -213,6 +217,7 @@ interface K8sDeploymentOptions {
   userConfigValues?: Record<string, string>;
   environmentValues?: Record<string, string>;
   effectiveNetworkPolicy?: EffectiveNetworkPolicy | null;
+  networkPolicyCapabilities?: K8sNetworkPolicyCapabilities | null;
   k8sExec: Exec;
 }
 
@@ -226,6 +231,7 @@ export default class K8sDeployment {
   private k8sApi: k8s.CoreV1Api;
   private k8sAppsApi: k8s.AppsV1Api;
   private k8sNetworkingApi: k8s.NetworkingV1Api;
+  private k8sCustomObjectsApi: k8s.CustomObjectsApi;
   private k8sAttach: Attach;
   private k8sLog: k8s.Log;
   private k8sExec: Exec;
@@ -245,6 +251,7 @@ export default class K8sDeployment {
   private userConfigValues?: Record<string, string>;
   private environmentValues?: Record<string, string>;
   private effectiveNetworkPolicy?: EffectiveNetworkPolicy | null;
+  private networkPolicyCapabilities?: K8sNetworkPolicyCapabilities | null;
 
   // Track assigned port for HTTP-based MCP servers
   assignedHttpPort?: number;
@@ -257,6 +264,8 @@ export default class K8sDeployment {
     this.k8sAppsApi = options.k8sAppsApi;
     this.k8sNetworkingApi =
       options.k8sNetworkingApi ?? ({} as k8s.NetworkingV1Api);
+    this.k8sCustomObjectsApi =
+      options.k8sCustomObjectsApi ?? ({} as k8s.CustomObjectsApi);
     this.k8sAttach = options.k8sAttach;
     this.k8sLog = options.k8sLog;
     this.k8sExec = options.k8sExec;
@@ -265,6 +274,7 @@ export default class K8sDeployment {
     this.userConfigValues = options.userConfigValues;
     this.environmentValues = options.environmentValues;
     this.effectiveNetworkPolicy = options.effectiveNetworkPolicy;
+    this.networkPolicyCapabilities = options.networkPolicyCapabilities;
     this.deploymentName = K8sDeployment.constructDeploymentName(
       options.mcpServer,
       options.catalogItem,
@@ -346,6 +356,25 @@ export default class K8sDeployment {
       return;
     }
 
+    if (
+      shouldUseCiliumNetworkPolicy({
+        effectivePolicy,
+        capabilities: this.networkPolicyCapabilities,
+      })
+    ) {
+      await this.applyCiliumNetworkPolicy(policyName, effectivePolicy);
+      await this.deleteKubernetesNetworkPolicy(policyName);
+      return;
+    }
+
+    await this.applyKubernetesNetworkPolicy(policyName, effectivePolicy);
+    await this.deleteCiliumNetworkPolicy(policyName);
+  }
+
+  private async applyKubernetesNetworkPolicy(
+    policyName: string,
+    effectivePolicy: EffectiveNetworkPolicy,
+  ): Promise<void> {
     const networkPolicy = buildManagedNetworkPolicy({
       name: policyName,
       podSelectorLabels: this.getSystemLabels(),
@@ -404,11 +433,91 @@ export default class K8sDeployment {
     }
   }
 
+  private async applyCiliumNetworkPolicy(
+    policyName: string,
+    effectivePolicy: EffectiveNetworkPolicy,
+  ): Promise<void> {
+    const networkPolicy = buildManagedCiliumNetworkPolicy({
+      name: policyName,
+      podSelectorLabels: this.getSystemLabels(),
+      effectivePolicy,
+    });
+
+    try {
+      try {
+        await this.k8sCustomObjectsApi.createNamespacedCustomObject({
+          group: "cilium.io",
+          version: "v2",
+          namespace: this.namespace,
+          plural: "ciliumnetworkpolicies",
+          body: networkPolicy,
+        });
+        logger.info(
+          {
+            mcpServerId: this.mcpServer.id,
+            networkPolicyName: policyName,
+            namespace: this.namespace,
+          },
+          "Created CiliumNetworkPolicy for MCP server",
+        );
+      } catch (createError: unknown) {
+        const isConflict =
+          createError &&
+          typeof createError === "object" &&
+          (("statusCode" in createError && createError.statusCode === 409) ||
+            ("code" in createError && createError.code === 409));
+
+        if (!isConflict) {
+          throw createError;
+        }
+
+        await this.k8sCustomObjectsApi.replaceNamespacedCustomObject({
+          group: "cilium.io",
+          version: "v2",
+          namespace: this.namespace,
+          plural: "ciliumnetworkpolicies",
+          name: policyName,
+          body: networkPolicy,
+        });
+        logger.info(
+          {
+            mcpServerId: this.mcpServer.id,
+            networkPolicyName: policyName,
+            namespace: this.namespace,
+          },
+          "Updated CiliumNetworkPolicy for MCP server",
+        );
+      }
+    } catch (error) {
+      logger.error(
+        {
+          err: error,
+          mcpServerId: this.mcpServer.id,
+          networkPolicyName: policyName,
+        },
+        "Failed to create or update CiliumNetworkPolicy",
+      );
+      throw error;
+    }
+  }
+
   /**
    * Delete the managed Kubernetes NetworkPolicy for this deployment.
    */
   async deleteK8sNetworkPolicy(): Promise<void> {
     const policyName = this.getK8sNetworkPolicyName();
+    await this.deleteKubernetesNetworkPolicy(policyName);
+    await this.deleteCiliumNetworkPolicy(policyName);
+  }
+
+  private async deleteKubernetesNetworkPolicy(
+    policyName: string,
+  ): Promise<void> {
+    if (
+      typeof this.k8sNetworkingApi.deleteNamespacedNetworkPolicy !== "function"
+    ) {
+      return;
+    }
 
     try {
       await this.k8sNetworkingApi.deleteNamespacedNetworkPolicy({
@@ -443,6 +552,55 @@ export default class K8sDeployment {
           networkPolicyName: policyName,
         },
         "Failed to delete K8s NetworkPolicy",
+      );
+      throw error;
+    }
+  }
+
+  private async deleteCiliumNetworkPolicy(policyName: string): Promise<void> {
+    if (
+      typeof this.k8sCustomObjectsApi.deleteNamespacedCustomObject !==
+      "function"
+    ) {
+      return;
+    }
+
+    try {
+      await this.k8sCustomObjectsApi.deleteNamespacedCustomObject({
+        group: "cilium.io",
+        version: "v2",
+        namespace: this.namespace,
+        plural: "ciliumnetworkpolicies",
+        name: policyName,
+      });
+
+      logger.info(
+        {
+          mcpServerId: this.mcpServer.id,
+          networkPolicyName: policyName,
+          namespace: this.namespace,
+        },
+        "Deleted CiliumNetworkPolicy for MCP server",
+      );
+    } catch (error: unknown) {
+      if (isK8sNotFoundError(error)) {
+        logger.debug(
+          {
+            mcpServerId: this.mcpServer.id,
+            networkPolicyName: policyName,
+          },
+          "CiliumNetworkPolicy not found (already deleted or never created)",
+        );
+        return;
+      }
+
+      logger.error(
+        {
+          err: error,
+          mcpServerId: this.mcpServer.id,
+          networkPolicyName: policyName,
+        },
+        "Failed to delete CiliumNetworkPolicy",
       );
       throw error;
     }

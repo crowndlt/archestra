@@ -12,7 +12,7 @@ import {
   constructResponseSchema,
   DeleteObjectResponseSchema,
   NetworkPolicyWithReferencesSchema,
-  SelectNetworkPolicySchema,
+  PublicNetworkPolicySchema,
   UpdateNetworkPolicySchema,
   UuidIdSchema,
 } from "@/types";
@@ -43,7 +43,7 @@ const networkPolicyRoutes: FastifyPluginAsyncZod = async (fastify) => {
         description: "Create a reusable organization network policy.",
         tags: ["Organization"],
         body: CreateNetworkPolicySchema,
-        response: constructResponseSchema(SelectNetworkPolicySchema),
+        response: constructResponseSchema(PublicNetworkPolicySchema),
       },
     },
     async ({ organizationId, body }, reply) => {
@@ -62,7 +62,7 @@ const networkPolicyRoutes: FastifyPluginAsyncZod = async (fastify) => {
         tags: ["Organization"],
         params: z.object({ id: UuidIdSchema }),
         body: UpdateNetworkPolicySchema,
-        response: constructResponseSchema(SelectNetworkPolicySchema),
+        response: constructResponseSchema(PublicNetworkPolicySchema),
       },
     },
     async ({ organizationId, params, body }, reply) => {

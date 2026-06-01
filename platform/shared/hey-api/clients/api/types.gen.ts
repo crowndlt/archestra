@@ -32185,6 +32185,96 @@ export type CheckInvitationResponses = {
 
 export type CheckInvitationResponse = CheckInvitationResponses[keyof CheckInvitationResponses];
 
+export type GetK8sCapabilitiesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/k8s/capabilities';
+};
+
+export type GetK8sCapabilitiesErrors = {
+    /**
+     * Default Response
+     */
+    400: {
+        error: {
+            message: string;
+            type: 'api_validation_error';
+            internal_code?: string;
+        };
+    };
+    /**
+     * Default Response
+     */
+    401: {
+        error: {
+            message: string;
+            type: 'api_authentication_error';
+            internal_code?: string;
+        };
+    };
+    /**
+     * Default Response
+     */
+    403: {
+        error: {
+            message: string;
+            type: 'api_authorization_error';
+            internal_code?: string;
+        };
+    };
+    /**
+     * Default Response
+     */
+    404: {
+        error: {
+            message: string;
+            type: 'api_not_found_error';
+            internal_code?: string;
+        };
+    };
+    /**
+     * Default Response
+     */
+    409: {
+        error: {
+            message: string;
+            type: 'api_conflict_error';
+            internal_code?: string;
+        };
+    };
+    /**
+     * Default Response
+     */
+    500: {
+        error: {
+            message: string;
+            type: 'api_internal_server_error';
+            internal_code?: string;
+        };
+    };
+};
+
+export type GetK8sCapabilitiesError = GetK8sCapabilitiesErrors[keyof GetK8sCapabilitiesErrors];
+
+export type GetK8sCapabilitiesResponses = {
+    /**
+     * Default Response
+     */
+    200: {
+        networkPolicy: {
+            kubernetesNetworkPolicy: boolean;
+            ciliumNetworkPolicy: boolean;
+            provider: 'cilium' | 'kubernetes' | 'none';
+            supportsFqdn: boolean;
+            supportsHttpMethods: boolean;
+            message: string | null;
+        };
+    };
+};
+
+export type GetK8sCapabilitiesResponse = GetK8sCapabilitiesResponses[keyof GetK8sCapabilitiesResponses];
+
 export type GetKnowledgeBasesData = {
     body?: never;
     path?: never;
@@ -42393,7 +42483,7 @@ export type ListNetworkPoliciesResponses = {
         egressMode: 'off' | 'restricted' | 'unrestricted';
         domainPreset: 'none' | 'common_dependencies' | 'package_managers';
         allowedDomains: Array<string>;
-        allowedHttpMethods: 'all' | 'read_only';
+        allowedCidrs: Array<string>;
         createdAt: string;
         updatedAt: string;
         references: {
@@ -42412,7 +42502,7 @@ export type CreateNetworkPolicyData = {
         egressMode?: 'off' | 'restricted' | 'unrestricted';
         domainPreset?: 'none' | 'common_dependencies' | 'package_managers';
         allowedDomains?: Array<string>;
-        allowedHttpMethods?: 'all' | 'read_only';
+        allowedCidrs?: Array<string>;
     };
     path?: never;
     query?: never;
@@ -42496,7 +42586,7 @@ export type CreateNetworkPolicyResponses = {
         egressMode: 'off' | 'restricted' | 'unrestricted';
         domainPreset: 'none' | 'common_dependencies' | 'package_managers';
         allowedDomains: Array<string>;
-        allowedHttpMethods: 'all' | 'read_only';
+        allowedCidrs: Array<string>;
         createdAt: string;
         updatedAt: string;
     };
@@ -42596,7 +42686,7 @@ export type UpdateNetworkPolicyData = {
         egressMode?: 'off' | 'restricted' | 'unrestricted';
         domainPreset?: 'none' | 'common_dependencies' | 'package_managers';
         allowedDomains?: Array<string>;
-        allowedHttpMethods?: 'all' | 'read_only';
+        allowedCidrs?: Array<string>;
     };
     path: {
         id: string;
@@ -42682,7 +42772,7 @@ export type UpdateNetworkPolicyResponses = {
         egressMode: 'off' | 'restricted' | 'unrestricted';
         domainPreset: 'none' | 'common_dependencies' | 'package_managers';
         allowedDomains: Array<string>;
-        allowedHttpMethods: 'all' | 'read_only';
+        allowedCidrs: Array<string>;
         createdAt: string;
         updatedAt: string;
     };

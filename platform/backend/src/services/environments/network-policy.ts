@@ -11,7 +11,7 @@ import {
 
 // === Public API ===
 
-export const BUILT_IN_NETWORK_POLICY: EffectiveNetworkPolicy = {
+const BUILT_IN_NETWORK_POLICY: EffectiveNetworkPolicy = {
   source: "built_in",
   policy: null,
 };

@@ -1,5 +1,5 @@
 {
-  "id": "602f2b8c-4fbc-49b9-b81b-d46a8ab5b267",
+  "id": "dbc16d92-8b16-44d0-a1df-4b00918071ea",
   "prevId": "e980010e-9fd9-4298-9407-88b66b127589",
   "version": "7",
   "dialect": "postgresql",
@@ -7568,6 +7568,13 @@
         },
         "allowed_domains": {
           "name": "allowed_domains",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "allowed_cidrs": {
+          "name": "allowed_cidrs",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,

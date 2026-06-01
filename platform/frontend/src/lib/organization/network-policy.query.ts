@@ -6,12 +6,15 @@ import { handleApiError } from "@/lib/utils";
 export const networkPolicyKeys = {
   all: ["network-policies"] as const,
   list: () => [...networkPolicyKeys.all, "list"] as const,
+  capabilities: () => [...networkPolicyKeys.all, "capabilities"] as const,
 };
 
 export type NetworkPolicyWithReferences =
   archestraApiTypes.ListNetworkPoliciesResponses["200"][number];
 export type NetworkPolicy =
   archestraApiTypes.CreateNetworkPolicyResponses["200"];
+export type K8sCapabilities =
+  archestraApiTypes.GetK8sCapabilitiesResponses["200"];
 
 export function useNetworkPolicies(enabled = true) {
   return useQuery({
@@ -26,6 +29,22 @@ export function useNetworkPolicies(enabled = true) {
     },
     enabled,
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useK8sCapabilities(enabled = true) {
+  return useQuery({
+    queryKey: networkPolicyKeys.capabilities(),
+    queryFn: async () => {
+      const { data, error } = await archestraApiSdk.getK8sCapabilities();
+      if (error) {
+        handleApiError(error);
+        return null;
+      }
+      return data ?? null;
+    },
+    enabled,
+    staleTime: 60 * 1000,
   });
 }
 

@@ -17,6 +17,7 @@ export { default as incomingEmailRoutes } from "./incoming-email";
 export { default as interactionRoutes } from "./interaction";
 export { default as internalMcpCatalogRoutes } from "./internal-mcp-catalog";
 export { default as invitationRoutes } from "./invitation";
+export { default as k8sCapabilitiesRoutes } from "./k8s-capabilities";
 export { default as knowledgeBaseRoutes } from "./knowledge-base";
 export { default as limitsRoutes } from "./limits";
 export { default as llmOauthClientsRoutes } from "./llm-oauth-clients";

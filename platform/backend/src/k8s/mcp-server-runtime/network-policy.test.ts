@@ -1,9 +1,11 @@
 import { describe, expect, test } from "@/test";
 import type { EffectiveNetworkPolicy } from "@/types";
 import {
+  buildManagedCiliumNetworkPolicy,
   buildManagedNetworkPolicy,
   constructManagedNetworkPolicyName,
   shouldManageK8sNetworkPolicy,
+  shouldUseCiliumNetworkPolicy,
 } from "./network-policy";
 
 describe("managed MCP Kubernetes NetworkPolicy", () => {
@@ -25,7 +27,7 @@ describe("managed MCP Kubernetes NetworkPolicy", () => {
         annotations: {
           "archestra.io/network-policy-egress-mode": "off",
           "archestra.io/network-policy-domain-enforcement":
-            "not-supported-by-kubernetes-networkpolicy",
+            "requires-ciliumnetworkpolicy",
         },
       },
       spec: {
@@ -41,7 +43,7 @@ describe("managed MCP Kubernetes NetworkPolicy", () => {
     });
   });
 
-  test("builds a restricted policy that fails closed except DNS", () => {
+  test("builds a restricted Kubernetes policy with DNS and CIDR egress", () => {
     const manifest = buildManagedNetworkPolicy({
       name: "mcp-egress-test",
       podSelectorLabels: {
@@ -51,6 +53,7 @@ describe("managed MCP Kubernetes NetworkPolicy", () => {
       effectivePolicy: makeEffectivePolicy({
         egressMode: "restricted",
         allowedDomains: ["registry.npmjs.org"],
+        allowedCidrs: ["203.0.113.0/24"],
         allowedHttpMethods: "read_only",
       }),
     });
@@ -76,15 +79,93 @@ describe("managed MCP Kubernetes NetworkPolicy", () => {
           { protocol: "TCP", port: 53 },
         ],
       },
+      {
+        to: [{ ipBlock: { cidr: "203.0.113.0/24" } }],
+      },
     ]);
     expect(manifest.metadata?.annotations).toMatchObject({
       "archestra.io/network-policy-allowed-domains": "registry.npmjs.org",
+      "archestra.io/network-policy-allowed-cidrs": "203.0.113.0/24",
       "archestra.io/network-policy-allowed-http-methods": "read_only",
       "archestra.io/network-policy-domain-enforcement":
-        "not-supported-by-kubernetes-networkpolicy",
-      "archestra.io/network-policy-http-method-enforcement":
-        "not-supported-by-kubernetes-networkpolicy",
+        "requires-ciliumnetworkpolicy",
+      "archestra.io/network-policy-http-method-enforcement": "not-supported",
     });
+  });
+
+  test("builds a Cilium policy with FQDN and CIDR egress", () => {
+    const manifest = buildManagedCiliumNetworkPolicy({
+      name: "mcp-egress-test",
+      podSelectorLabels: {
+        app: "mcp-server",
+        "mcp-server-id": "server-id",
+      },
+      effectivePolicy: makeEffectivePolicy({
+        egressMode: "restricted",
+        domainPreset: "package_managers",
+        allowedDomains: ["api.example.com", "*.example.org"],
+        allowedCidrs: ["203.0.113.0/24"],
+      }),
+    });
+
+    expect(manifest).toMatchObject({
+      apiVersion: "cilium.io/v2",
+      kind: "CiliumNetworkPolicy",
+      spec: {
+        endpointSelector: {
+          matchLabels: {
+            app: "mcp-server",
+            "mcp-server-id": "server-id",
+          },
+        },
+        egress: [
+          {
+            toCIDRSet: [{ cidr: "203.0.113.0/24" }],
+          },
+          {
+            toFQDNs: expect.arrayContaining([
+              { matchName: "registry.npmjs.org" },
+              { matchName: "api.example.com" },
+              { matchPattern: "*.example.org" },
+            ]),
+          },
+        ],
+      },
+    });
+  });
+
+  test("uses Cilium only when Cilium is available and domain rules exist", () => {
+    const policy = makeEffectivePolicy({
+      egressMode: "restricted",
+      allowedDomains: ["api.example.com"],
+    });
+
+    expect(
+      shouldUseCiliumNetworkPolicy({
+        effectivePolicy: policy,
+        capabilities: {
+          kubernetesNetworkPolicy: true,
+          ciliumNetworkPolicy: true,
+          provider: "cilium",
+          supportsFqdn: true,
+          supportsHttpMethods: false,
+          message: null,
+        },
+      }),
+    ).toBe(true);
+    expect(
+      shouldUseCiliumNetworkPolicy({
+        effectivePolicy: policy,
+        capabilities: {
+          kubernetesNetworkPolicy: true,
+          ciliumNetworkPolicy: false,
+          provider: "kubernetes",
+          supportsFqdn: false,
+          supportsHttpMethods: false,
+          message: null,
+        },
+      }),
+    ).toBe(false);
   });
 
   test("does not manage a Kubernetes NetworkPolicy for unrestricted or built-in policy", () => {
@@ -126,6 +207,7 @@ function makeEffectivePolicy(
       egressMode: "restricted",
       domainPreset: "none",
       allowedDomains: [],
+      allowedCidrs: [],
       allowedHttpMethods: "all",
       createdAt: new Date("2026-01-01T00:00:00.000Z"),
       updatedAt: new Date("2026-01-01T00:00:00.000Z"),

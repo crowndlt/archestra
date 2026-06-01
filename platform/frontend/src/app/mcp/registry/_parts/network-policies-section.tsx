@@ -1,13 +1,15 @@
 "use client";
 
+import { DocsPage, getDocsUrl } from "@shared";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Info, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
+import { ExternalDocsLink } from "@/components/external-docs-link";
 import { TableRowActions } from "@/components/table-row-actions";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DataTable } from "@/components/ui/data-table";
 import {
   Dialog,
@@ -21,6 +23,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -32,18 +39,26 @@ import {
   type NetworkPolicyWithReferences,
   useCreateNetworkPolicy,
   useDeleteNetworkPolicy,
+  useK8sCapabilities,
   useNetworkPolicies,
   useUpdateNetworkPolicy,
 } from "@/lib/organization/network-policy.query";
 import { useSetMcpRegistryAction } from "../layout";
 
+const CILIUM_DNS_POLICY_DOCS_URL =
+  "https://docs.cilium.io/en/latest/security/dns/";
+const NETWORK_POLICY_DOCS_URL = getDocsUrl(
+  DocsPage.PlatformPrivateRegistry,
+  "network-policies",
+);
+
 type EgressMode = NetworkPolicyWithReferences["egressMode"];
 type DomainPreset = NetworkPolicyWithReferences["domainPreset"];
-type AllowedHttpMethods = NetworkPolicyWithReferences["allowedHttpMethods"];
 
 export function NetworkPoliciesSection({ canEdit }: { canEdit: boolean }) {
   const setActionButton = useSetMcpRegistryAction();
   const { data: policies = [], isLoading } = useNetworkPolicies();
+  const { data: capabilities } = useK8sCapabilities();
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] =
     useState<NetworkPolicyWithReferences | null>(null);
@@ -104,11 +119,11 @@ export function NetworkPoliciesSection({ canEdit }: { canEdit: boolean }) {
         ),
       },
       {
-        accessorKey: "allowedHttpMethods",
-        header: "Methods",
+        id: "cidrs",
+        header: "CIDRs",
         cell: ({ row }) => (
           <span className="text-muted-foreground">
-            {formatMethods(row.original.allowedHttpMethods)}
+            {formatCidrSummary(row.original)}
           </span>
         ),
       },
@@ -170,12 +185,14 @@ export function NetworkPoliciesSection({ canEdit }: { canEdit: boolean }) {
         open={createOpen}
         onOpenChange={setCreateOpen}
         policy={null}
+        capabilities={capabilities}
       />
 
       <NetworkPolicyEditorDialog
         open={editTarget !== null}
         onOpenChange={(v) => !v && setEditTarget(null)}
         policy={editTarget}
+        capabilities={capabilities}
       />
 
       <DeleteNetworkPolicyDialog
@@ -190,10 +207,12 @@ function NetworkPolicyEditorDialog({
   open,
   onOpenChange,
   policy,
+  capabilities,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   policy: NetworkPolicyWithReferences | null;
+  capabilities: ReturnType<typeof useK8sCapabilities>["data"];
 }) {
   const create = useCreateNetworkPolicy();
   const update = useUpdateNetworkPolicy();
@@ -204,8 +223,7 @@ function NetworkPolicyEditorDialog({
   const [egressMode, setEgressMode] = useState<EgressMode>("restricted");
   const [domainPreset, setDomainPreset] = useState<DomainPreset>("none");
   const [allowedDomainsText, setAllowedDomainsText] = useState("");
-  const [allowedHttpMethods, setAllowedHttpMethods] =
-    useState<AllowedHttpMethods>("all");
+  const [allowedCidrsText, setAllowedCidrsText] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -214,7 +232,7 @@ function NetworkPolicyEditorDialog({
     setEgressMode(policy?.egressMode ?? "restricted");
     setDomainPreset(policy?.domainPreset ?? "none");
     setAllowedDomainsText((policy?.allowedDomains ?? []).join("\n"));
-    setAllowedHttpMethods(policy?.allowedHttpMethods ?? "all");
+    setAllowedCidrsText((policy?.allowedCidrs ?? []).join("\n"));
   }, [open, policy]);
 
   const allowedDomains = useMemo(
@@ -225,6 +243,15 @@ function NetworkPolicyEditorDialog({
         .filter(Boolean),
     [allowedDomainsText],
   );
+  const allowedCidrs = useMemo(
+    () =>
+      allowedCidrsText
+        .split(/\r?\n|,/)
+        .map((cidr) => cidr.trim())
+        .filter(Boolean),
+    [allowedCidrsText],
+  );
+  const supportsFqdn = capabilities?.networkPolicy.supportsFqdn === true;
 
   const canSave = name.trim().length > 0 && !isPending;
 
@@ -234,8 +261,8 @@ function NetworkPolicyEditorDialog({
       description: description.trim() || null,
       egressMode,
       domainPreset,
-      allowedDomains,
-      allowedHttpMethods,
+      allowedDomains: supportsFqdn ? allowedDomains : [],
+      allowedCidrs,
     };
 
     const result = policy
@@ -255,11 +282,34 @@ function NetworkPolicyEditorDialog({
             {policy ? "Edit network policy" : "Add network policy"}
           </DialogTitle>
           <DialogDescription>
-            Configure reusable egress rules for environments and MCP server
-            installations.
+            Configure reusable egress rules for deployment environments.{" "}
+            <ExternalDocsLink href={NETWORK_POLICY_DOCS_URL}>
+              View docs
+            </ExternalDocsLink>
           </DialogDescription>
         </DialogHeader>
         <DialogBody className="space-y-4">
+          {!supportsFqdn ? (
+            <Alert variant="info">
+              <Info className="h-4 w-4" />
+              <AlertTitle>Domain allowlists require Cilium</AlertTitle>
+              <AlertDescription>
+                Kubernetes{" "}
+                <code className="rounded bg-muted px-1 py-0.5 font-mono">
+                  NetworkPolicy
+                </code>{" "}
+                supports IP/CIDR rules. Domain rules need{" "}
+                <code className="rounded bg-muted px-1 py-0.5 font-mono">
+                  CiliumNetworkPolicy
+                </code>
+                .{" "}
+                <ExternalDocsLink href={CILIUM_DNS_POLICY_DOCS_URL}>
+                  View Cilium DNS policy docs
+                </ExternalDocsLink>
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
           <div className="space-y-2">
             <Label htmlFor="network-policy-name">
               Name <span className="text-destructive">*</span>
@@ -286,84 +336,86 @@ function NetworkPolicyEditorDialog({
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Egress</Label>
-              <Select
-                value={egressMode}
-                onValueChange={(value) => setEgressMode(value as EgressMode)}
-                disabled={isPending}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="off">Off</SelectItem>
-                  <SelectItem value="restricted">Restricted</SelectItem>
-                  <SelectItem value="unrestricted">Unrestricted</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Domain preset</Label>
-              <Select
-                value={domainPreset}
-                onValueChange={(value) =>
-                  setDomainPreset(value as DomainPreset)
-                }
-                disabled={isPending || egressMode !== "restricted"}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="common_dependencies">
-                    Common dependencies
-                  </SelectItem>
-                  <SelectItem value="package_managers">
-                    Package managers
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <FieldLabel
+              label="Egress"
+              description="Controls outbound internet access for workloads using this policy. Off blocks egress, Restricted allows only the CIDR/domain rules below, and Unrestricted allows all egress."
+            />
+            <Select
+              value={egressMode}
+              onValueChange={(value) => setEgressMode(value as EgressMode)}
+              disabled={isPending}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="off">Off</SelectItem>
+                <SelectItem value="restricted">Restricted</SelectItem>
+                <SelectItem value="unrestricted">Unrestricted</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="network-policy-domains">
-              Additional allowed domains
-            </Label>
+            <FieldLabel
+              label="Domain preset"
+              description="Adds a maintained domain allowlist for common dependency or package manager traffic. Domain presets require CiliumNetworkPolicy support in the cluster."
+            />
+            <Select
+              value={domainPreset}
+              onValueChange={(value) => setDomainPreset(value as DomainPreset)}
+              disabled={
+                isPending || egressMode !== "restricted" || !supportsFqdn
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None</SelectItem>
+                <SelectItem value="common_dependencies">
+                  Common dependencies
+                </SelectItem>
+                <SelectItem value="package_managers">
+                  Package managers
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <FieldLabel
+              htmlFor="network-policy-cidrs"
+              label="Allowed CIDRs"
+              description="IPv4 or IPv6 CIDR ranges that restricted workloads may reach. These rules are enforced by standard Kubernetes NetworkPolicy."
+            />
+            <Textarea
+              id="network-policy-cidrs"
+              value={allowedCidrsText}
+              onChange={(e) => setAllowedCidrsText(e.target.value)}
+              placeholder={"203.0.113.0/24\n2001:db8::/32"}
+              className="min-h-20 font-mono text-sm"
+              disabled={isPending || egressMode !== "restricted"}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <FieldLabel
+              htmlFor="network-policy-domains"
+              label="Additional allowed domains"
+              description="Exact domains or wildcard subdomains to allow in restricted mode. Domain rules require CiliumNetworkPolicy; without Cilium, use CIDR rules instead."
+            />
             <Textarea
               id="network-policy-domains"
               value={allowedDomainsText}
               onChange={(e) => setAllowedDomainsText(e.target.value)}
               placeholder={"api.example.com\n*.example.org"}
               className="min-h-24 font-mono text-sm"
-              disabled={isPending || egressMode !== "restricted"}
-            />
-          </div>
-
-          <div className="flex items-start gap-3 rounded-md border p-3">
-            <Checkbox
-              id="network-policy-read-only-methods"
-              checked={allowedHttpMethods === "read_only"}
-              onCheckedChange={(checked) =>
-                setAllowedHttpMethods(checked ? "read_only" : "all")
+              disabled={
+                isPending || egressMode !== "restricted" || !supportsFqdn
               }
-              disabled={isPending || egressMode === "off"}
             />
-            <span className="grid gap-1 text-sm">
-              <Label
-                htmlFor="network-policy-read-only-methods"
-                className="font-medium"
-              >
-                Read-only HTTP methods
-              </Label>
-              <span className="text-muted-foreground">
-                Restrict HTTP requests to GET, HEAD, and OPTIONS.
-              </span>
-            </span>
           </div>
         </DialogBody>
         <DialogFooter>
@@ -380,6 +432,38 @@ function NetworkPolicyEditorDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function FieldLabel({
+  htmlFor,
+  label,
+  description,
+}: {
+  htmlFor?: string;
+  label: string;
+  description: string;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <Label htmlFor={htmlFor}>{label}</Label>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className="h-5 w-5 text-muted-foreground hover:text-foreground"
+            aria-label={`${label} help`}
+          >
+            <Info className="h-3.5 w-3.5" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-80 text-sm">
+          {description}
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }
 
@@ -438,6 +522,10 @@ function formatDomainSummary(policy: NetworkPolicyWithReferences) {
   return additional > 0 ? `${preset} + ${additional} custom` : preset;
 }
 
-function formatMethods(methods: AllowedHttpMethods) {
-  return methods === "read_only" ? "GET, HEAD, OPTIONS" : "All";
+function formatCidrSummary(policy: NetworkPolicyWithReferences) {
+  if (policy.egressMode === "off") return "None";
+  if (policy.egressMode === "unrestricted") return "All CIDRs";
+
+  const count = policy.allowedCidrs.length;
+  return count === 0 ? "None" : `${count} allowed`;
 }

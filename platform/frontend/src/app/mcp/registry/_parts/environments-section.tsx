@@ -3,6 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   CheckCircle2,
+  Info,
   Loader2,
   Pencil,
   Plus,
@@ -13,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { ReinstallConfirmBar } from "@/components/reinstall-confirm-bar";
 import { TableRowActions } from "@/components/table-row-actions";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
@@ -68,13 +70,21 @@ type EnvironmentTableRow =
     }
   | (EnvironmentWithAssignedCount & { kind: "environment" });
 
-export function EnvironmentsSection({ canEdit }: { canEdit: boolean }) {
+export function EnvironmentsSection({
+  canEdit,
+  canReadNetworkPolicies,
+}: {
+  canEdit: boolean;
+  canReadNetworkPolicies: boolean;
+}) {
   const setActionButton = useSetMcpRegistryAction();
   const { data: environmentList, isLoading } = useEnvironments();
   const environments = environmentList?.environments ?? [];
   const defaultAssignedCatalogCount =
     environmentList?.defaultAssignedCatalogCount ?? 0;
-  const { data: networkPolicies = [] } = useNetworkPolicies();
+  const { data: networkPolicies = [] } = useNetworkPolicies(
+    canReadNetworkPolicies,
+  );
   const defaultEnvironment = useDefaultEnvironment();
   const [createOpen, setCreateOpen] = useState(false);
   const [editDefaultOpen, setEditDefaultOpen] = useState(false);
@@ -147,6 +157,7 @@ export function EnvironmentsSection({ canEdit }: { canEdit: boolean }) {
           <NetworkPolicyCell
             policyId={row.original.networkPolicyId}
             policies={networkPolicies}
+            canReadNetworkPolicies={canReadNetworkPolicies}
             emptyLabel={
               row.original.kind === "default" ? "None" : "Use default"
             }
@@ -215,7 +226,7 @@ export function EnvironmentsSection({ canEdit }: { canEdit: boolean }) {
         },
       },
     ],
-    [canEdit, networkPolicies],
+    [canEdit, networkPolicies, canReadNetworkPolicies],
   );
 
   return (
@@ -234,6 +245,7 @@ export function EnvironmentsSection({ canEdit }: { canEdit: boolean }) {
         onOpenChange={setCreateOpen}
         environment={null}
         networkPolicies={networkPolicies}
+        canReadNetworkPolicies={canReadNetworkPolicies}
       />
 
       <EnvironmentEditorDialog
@@ -242,6 +254,7 @@ export function EnvironmentsSection({ canEdit }: { canEdit: boolean }) {
         onOpenChange={(v) => !v && setEditTarget(null)}
         environment={editTarget}
         networkPolicies={networkPolicies}
+        canReadNetworkPolicies={canReadNetworkPolicies}
       />
 
       <EnvironmentEditorDialog
@@ -251,6 +264,7 @@ export function EnvironmentsSection({ canEdit }: { canEdit: boolean }) {
         environment={null}
         defaultEnvironment={defaultEnvironment}
         networkPolicies={networkPolicies}
+        canReadNetworkPolicies={canReadNetworkPolicies}
       />
 
       <DeleteEnvironmentDialog
@@ -295,14 +309,24 @@ function NamespaceCell({ namespace }: { namespace: string | null }) {
 function NetworkPolicyCell({
   policyId,
   policies,
+  canReadNetworkPolicies,
   emptyLabel,
 }: {
   policyId: string | null;
   policies: Array<{ id: string; name: string }>;
+  canReadNetworkPolicies: boolean;
   emptyLabel: string;
 }) {
   if (!policyId) {
     return <span className="text-muted-foreground">{emptyLabel}</span>;
+  }
+
+  if (!canReadNetworkPolicies) {
+    return (
+      <span className="text-muted-foreground">
+        Requires network policy read
+      </span>
+    );
   }
 
   const policy = policies.find((p) => p.id === policyId);
@@ -326,6 +350,7 @@ function EnvironmentEditorDialog({
   environment,
   defaultEnvironment,
   networkPolicies,
+  canReadNetworkPolicies,
 }: {
   // "default" edits the org-level default environment; "create"/"edit" manage
   // real environments. Name, description, namespace, and restricted are all
@@ -346,6 +371,7 @@ function EnvironmentEditorDialog({
     name: string;
     description: string | null;
   }>;
+  canReadNetworkPolicies: boolean;
 }) {
   const createMutation = useCreateEnvironment();
   const updateMutation = useUpdateEnvironment();
@@ -567,33 +593,47 @@ function EnvironmentEditorDialog({
           </div>
           <div className="space-y-2">
             <Label>Network Policy</Label>
-            <Select
-              value={networkPolicyId ?? NETWORK_POLICY_DEFAULT_VALUE}
-              onValueChange={(value) =>
-                setNetworkPolicyId(
-                  value === NETWORK_POLICY_DEFAULT_VALUE ? null : value,
-                )
-              }
-              disabled={isPending}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NETWORK_POLICY_DEFAULT_VALUE}>
-                  {mode === "default" ? "None" : "Use default policy"}
-                </SelectItem>
-                {networkPolicies.map((policy) => (
-                  <SelectItem
-                    key={policy.id}
-                    value={policy.id}
-                    description={policy.description ?? undefined}
-                  >
-                    {policy.name}
+            {canReadNetworkPolicies ? (
+              <Select
+                value={networkPolicyId ?? NETWORK_POLICY_DEFAULT_VALUE}
+                onValueChange={(value) =>
+                  setNetworkPolicyId(
+                    value === NETWORK_POLICY_DEFAULT_VALUE ? null : value,
+                  )
+                }
+                disabled={isPending}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NETWORK_POLICY_DEFAULT_VALUE}>
+                    {mode === "default" ? "None" : "Use default policy"}
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  {networkPolicies.map((policy) => (
+                    <SelectItem
+                      key={policy.id}
+                      value={policy.id}
+                      description={policy.description ?? undefined}
+                    >
+                      {policy.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Alert variant="info">
+                <Info className="h-4 w-4" />
+                <AlertTitle>Network policies hidden</AlertTitle>
+                <AlertDescription>
+                  You can edit environments, but need the{" "}
+                  <code className="rounded bg-muted px-1 py-0.5 font-mono">
+                    networkPolicy:read
+                  </code>{" "}
+                  permission to view or change the assigned policy.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">

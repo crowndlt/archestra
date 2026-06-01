@@ -394,6 +394,7 @@ export const RouteId = {
   DeleteEnvironment: "deleteEnvironment",
   UpdateDefaultEnvironment: "updateDefaultEnvironment",
   ValidateEnvironmentNamespace: "validateEnvironmentNamespace",
+  GetK8sCapabilities: "getK8sCapabilities",
   ListNetworkPolicies: "listNetworkPolicies",
   CreateNetworkPolicy: "createNetworkPolicy",
   UpdateNetworkPolicy: "updateNetworkPolicy",

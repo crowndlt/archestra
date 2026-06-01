@@ -121913,6 +121913,305 @@
         }
       }
     },
+    "/api/k8s/capabilities": {
+      "get": {
+        "operationId": "getK8sCapabilities",
+        "tags": [
+          "Organization"
+        ],
+        "description": "Inspect Kubernetes capabilities available to Archestra.\n\nAuthentication:\n\nRequired. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.\n\nAuthorization:\n\n`networkPolicy:read`: View network policies",
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "networkPolicy": {
+                      "type": "object",
+                      "properties": {
+                        "kubernetesNetworkPolicy": {
+                          "type": "boolean"
+                        },
+                        "ciliumNetworkPolicy": {
+                          "type": "boolean"
+                        },
+                        "provider": {
+                          "type": "string",
+                          "enum": [
+                            "cilium",
+                            "kubernetes",
+                            "none"
+                          ]
+                        },
+                        "supportsFqdn": {
+                          "type": "boolean"
+                        },
+                        "supportsHttpMethods": {
+                          "type": "boolean"
+                        },
+                        "message": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "kubernetesNetworkPolicy",
+                        "ciliumNetworkPolicy",
+                        "provider",
+                        "supportsFqdn",
+                        "supportsHttpMethods",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "networkPolicy"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "api_validation_error"
+                          ]
+                        },
+                        "internal_code": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message",
+                        "type"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "api_authentication_error"
+                          ]
+                        },
+                        "internal_code": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message",
+                        "type"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "api_authorization_error"
+                          ]
+                        },
+                        "internal_code": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message",
+                        "type"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "api_not_found_error"
+                          ]
+                        },
+                        "internal_code": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message",
+                        "type"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "api_conflict_error"
+                          ]
+                        },
+                        "internal_code": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message",
+                        "type"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "api_internal_server_error"
+                          ]
+                        },
+                        "internal_code": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message",
+                        "type"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "x-required-permissions": {
+          "kind": "static",
+          "permissions": [
+            "networkPolicy:read"
+          ]
+        }
+      }
+    },
     "/api/knowledge-bases": {
       "get": {
         "operationId": "getKnowledgeBases",
@@ -160783,7 +161082,7 @@
         "tags": [
           "Organization"
         ],
-        "description": "List reusable organization network policies.\n\nAuthentication:\n\nRequired. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.\n\nAuthorization:\n\n`environment:read`: View deployment environments",
+        "description": "List reusable organization network policies.\n\nAuthentication:\n\nRequired. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.\n\nAuthorization:\n\n`networkPolicy:read`: View network policies",
         "responses": {
           "200": {
             "description": "Default Response",
@@ -160831,12 +161130,11 @@
                           "type": "string"
                         }
                       },
-                      "allowedHttpMethods": {
-                        "type": "string",
-                        "enum": [
-                          "all",
-                          "read_only"
-                        ]
+                      "allowedCidrs": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
                       },
                       "createdAt": {
                         "type": "string",
@@ -160875,7 +161173,7 @@
                       "egressMode",
                       "domainPreset",
                       "allowedDomains",
-                      "allowedHttpMethods",
+                      "allowedCidrs",
                       "createdAt",
                       "updatedAt",
                       "references"
@@ -161118,7 +161416,7 @@
         "x-required-permissions": {
           "kind": "static",
           "permissions": [
-            "environment:read"
+            "networkPolicy:read"
           ]
         }
       },
@@ -161127,7 +161425,7 @@
         "tags": [
           "Organization"
         ],
-        "description": "Create a reusable organization network policy.\n\nAuthentication:\n\nRequired. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.\n\nAuthorization:\n\n`environment:create`: Create deployment environments",
+        "description": "Create a reusable organization network policy.\n\nAuthentication:\n\nRequired. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.\n\nAuthorization:\n\n`networkPolicy:create`: Create network policies",
         "requestBody": {
           "required": true,
           "content": {
@@ -161170,12 +161468,11 @@
                       "pattern": "^(\\*\\.)?[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$"
                     }
                   },
-                  "allowedHttpMethods": {
-                    "type": "string",
-                    "enum": [
-                      "all",
-                      "read_only"
-                    ]
+                  "allowedCidrs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": [
@@ -161230,12 +161527,11 @@
                         "type": "string"
                       }
                     },
-                    "allowedHttpMethods": {
-                      "type": "string",
-                      "enum": [
-                        "all",
-                        "read_only"
-                      ]
+                    "allowedCidrs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     },
                     "createdAt": {
                       "type": "string",
@@ -161254,7 +161550,7 @@
                     "egressMode",
                     "domainPreset",
                     "allowedDomains",
-                    "allowedHttpMethods",
+                    "allowedCidrs",
                     "createdAt",
                     "updatedAt"
                   ],
@@ -161495,7 +161791,7 @@
         "x-required-permissions": {
           "kind": "static",
           "permissions": [
-            "environment:create"
+            "networkPolicy:create"
           ]
         }
       }
@@ -161506,7 +161802,7 @@
         "tags": [
           "Organization"
         ],
-        "description": "Update a reusable organization network policy.\n\nAuthentication:\n\nRequired. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.\n\nAuthorization:\n\n`environment:update`: Modify deployment environment namespace",
+        "description": "Update a reusable organization network policy.\n\nAuthentication:\n\nRequired. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.\n\nAuthorization:\n\n`networkPolicy:update`: Modify network policies",
         "requestBody": {
           "required": true,
           "content": {
@@ -161549,12 +161845,11 @@
                       "pattern": "^(\\*\\.)?[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$"
                     }
                   },
-                  "allowedHttpMethods": {
-                    "type": "string",
-                    "enum": [
-                      "all",
-                      "read_only"
-                    ]
+                  "allowedCidrs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -161618,12 +161913,11 @@
                         "type": "string"
                       }
                     },
-                    "allowedHttpMethods": {
-                      "type": "string",
-                      "enum": [
-                        "all",
-                        "read_only"
-                      ]
+                    "allowedCidrs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     },
                     "createdAt": {
                       "type": "string",
@@ -161642,7 +161936,7 @@
                     "egressMode",
                     "domainPreset",
                     "allowedDomains",
-                    "allowedHttpMethods",
+                    "allowedCidrs",
                     "createdAt",
                     "updatedAt"
                   ],
@@ -161883,7 +162177,7 @@
         "x-required-permissions": {
           "kind": "static",
           "permissions": [
-            "environment:update"
+            "networkPolicy:update"
           ]
         }
       },
@@ -161892,7 +162186,7 @@
         "tags": [
           "Organization"
         ],
-        "description": "Delete a reusable organization network policy. Fails with 409 while it is still assigned.\n\nAuthentication:\n\nRequired. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.\n\nAuthorization:\n\n`environment:delete`: Delete deployment environments",
+        "description": "Delete a reusable organization network policy. Fails with 409 while it is still assigned.\n\nAuthentication:\n\nRequired. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.\n\nAuthorization:\n\n`networkPolicy:delete`: Delete network policies",
         "parameters": [
           {
             "schema": {
@@ -162157,7 +162451,7 @@
         "x-required-permissions": {
           "kind": "static",
           "permissions": [
-            "environment:delete"
+            "networkPolicy:delete"
           ]
         }
       }

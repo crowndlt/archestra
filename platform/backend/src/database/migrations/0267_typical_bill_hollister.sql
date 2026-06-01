@@ -6,6 +6,7 @@ CREATE TABLE "network_policies" (
 	"egress_mode" text DEFAULT 'restricted' NOT NULL,
 	"domain_preset" text DEFAULT 'none' NOT NULL,
 	"allowed_domains" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"allowed_cidrs" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"allowed_http_methods" text DEFAULT 'all' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
@@ -17,4 +18,4 @@ ALTER TABLE "organization" ADD COLUMN "default_network_policy_id" uuid;--> state
 ALTER TABLE "network_policies" ADD CONSTRAINT "network_policies_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "network_policy_org_idx" ON "network_policies" USING btree ("organization_id");--> statement-breakpoint
 ALTER TABLE "environment" ADD CONSTRAINT "environment_network_policy_id_network_policies_id_fk" FOREIGN KEY ("network_policy_id") REFERENCES "public"."network_policies"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "environment_network_policy_id_idx" ON "environment" USING btree ("network_policy_id");--> statement-breakpoint
+CREATE INDEX "environment_network_policy_id_idx" ON "environment" USING btree ("network_policy_id");

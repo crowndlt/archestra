@@ -68,7 +68,7 @@ describe("network policy routes", () => {
         egressMode: "restricted",
         domainPreset: "package_managers",
         allowedDomains: ["api.example.com", "*.example.org"],
-        allowedHttpMethods: "read_only",
+        allowedCidrs: ["203.0.113.0/24"],
       },
     });
     expect(created.statusCode).toBe(200);
@@ -78,8 +78,9 @@ describe("network policy routes", () => {
       egressMode: "restricted",
       domainPreset: "package_managers",
       allowedDomains: ["api.example.com", "*.example.org"],
-      allowedHttpMethods: "read_only",
+      allowedCidrs: ["203.0.113.0/24"],
     });
+    expect(created.json()).not.toHaveProperty("allowedHttpMethods");
 
     const listed = await app.inject({
       method: "GET",
@@ -100,14 +101,13 @@ describe("network policy routes", () => {
       url: `/api/network-policies/${created.json().id}`,
       payload: {
         name: "Dependency installs",
-        allowedHttpMethods: "all",
       },
     });
     expect(updated.statusCode).toBe(200);
     expect(updated.json()).toMatchObject({
       name: "Dependency installs",
-      allowedHttpMethods: "all",
     });
+    expect(updated.json()).not.toHaveProperty("allowedHttpMethods");
 
     const deleted = await app.inject({
       method: "DELETE",
@@ -117,7 +117,7 @@ describe("network policy routes", () => {
     expect(deleted.json()).toEqual({ success: true });
   });
 
-  test("member without permission is forbidden", async ({
+  test("requires networkPolicy create permission", async ({
     makeOrganization,
     makeUser,
   }) => {
@@ -136,6 +136,10 @@ describe("network policy routes", () => {
       payload: { name: "No access" },
     });
     expect(response.statusCode).toBe(403);
+    expect(mockHasPermission).toHaveBeenCalledWith(
+      { networkPolicy: ["create"] },
+      expect.any(Object),
+    );
   });
 
   test("duplicate names return 409", async ({ makeOrganization, makeUser }) => {
@@ -160,6 +164,28 @@ describe("network policy routes", () => {
     expect(duplicate.statusCode).toBe(409);
   });
 
+  test("invalid CIDR rules return 400", async ({
+    makeOrganization,
+    makeUser,
+  }) => {
+    vi.clearAllMocks();
+    mockHasPermission.mockResolvedValue({ success: true, error: null });
+    const user = await makeUser();
+    const organization = await makeOrganization();
+    app = await buildApp(user, organization.id);
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/network-policies",
+      payload: {
+        name: "Invalid CIDR",
+        allowedCidrs: ["not-a-cidr"],
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
   test("delete returns 409 while policy is assigned to an environment", async ({
     makeOrganization,
     makeUser,
@@ -173,7 +199,7 @@ describe("network policy routes", () => {
     const created = await app.inject({
       method: "POST",
       url: "/api/network-policies",
-      payload: { name: "Install override" },
+      payload: { name: "Environment egress" },
     });
     expect(created.statusCode).toBe(200);
     const policyId = created.json().id as string;

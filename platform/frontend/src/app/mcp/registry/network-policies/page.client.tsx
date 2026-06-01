@@ -5,7 +5,7 @@ import { NetworkPoliciesSection } from "../_parts/network-policies-section";
 
 export default function NetworkPoliciesPageClient() {
   const { data: canEdit } = useHasPermissions({
-    environment: ["create", "update", "delete"],
+    networkPolicy: ["create", "update", "delete"],
   });
 
   return (

@@ -27,7 +27,6 @@ describe("NetworkPolicyService", () => {
         egressMode: "restricted",
         domainPreset: "package_managers",
         allowedDomains: ["api.example.com", "*.example.org"],
-        allowedHttpMethods: "read_only",
       },
     });
 
@@ -40,10 +39,9 @@ describe("NetworkPolicyService", () => {
     const updated = await updateNetworkPolicy({
       id: created.id,
       organizationId: org.id,
-      data: { name: "Dependency installs", allowedHttpMethods: "all" },
+      data: { name: "Dependency installs" },
     });
     expect(updated.name).toBe("Dependency installs");
-    expect(updated.allowedHttpMethods).toBe("all");
 
     const listed = await listNetworkPolicies(org.id);
     expect(listed).toHaveLength(1);

@@ -47,6 +47,7 @@ vi.mock("@kubernetes/client-node", () => {
     AppsV1Api: vi.fn(),
     AuthorizationV1Api: vi.fn(),
     NetworkingV1Api: vi.fn(),
+    CustomObjectsApi: vi.fn(),
     BatchV1Api: vi.fn(),
     Attach: vi.fn(),
     Log: vi.fn(),
@@ -114,7 +115,6 @@ vi.mock("@/models/organization", () => ({
 }));
 
 vi.mock("@/services/environments/network-policy", () => ({
-  BUILT_IN_NETWORK_POLICY: { source: "built_in", policy: null },
   resolveEffectiveNetworkPolicy: vi
     .fn()
     .mockResolvedValue({ source: "built_in", policy: null }),

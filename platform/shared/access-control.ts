@@ -55,6 +55,7 @@ export const allAvailableActions: Record<Resource, Action[]> = {
   mcpServerInstallation: ["read", "create", "update", "delete", "admin"],
   mcpServerInstallationRequest: ["read", "create", "update", "delete", "admin"],
   environment: ["read", "create", "update", "delete", "admin"],
+  networkPolicy: ["read", "create", "update", "delete"],
 
   // Knowledge
   knowledgeFile: ["read", "create", "update", "delete", "admin"],
@@ -116,6 +117,7 @@ export const editorPermissions: Record<Resource, Action[]> = {
   mcpServerInstallation: ["read", "create", "update", "delete"],
   mcpServerInstallationRequest: ["read", "create", "update", "delete"],
   environment: ["read", "create", "update", "delete"],
+  networkPolicy: ["read", "create", "update", "delete"],
 
   // Knowledge
   knowledgeFile: ["read", "create", "update", "delete"],
@@ -177,6 +179,7 @@ export const memberPermissions: Record<Resource, Action[]> = {
   mcpServerInstallation: ["read", "create", "delete"],
   mcpServerInstallationRequest: ["read", "create", "update"],
   environment: ["read"],
+  networkPolicy: ["read"],
 
   // Knowledge
   knowledgeFile: ["read"],
@@ -299,6 +302,10 @@ export const permissionDescriptions: Record<string, string> = {
   "environment:update": "Modify deployment environment namespace",
   "environment:delete": "Delete deployment environments",
   "environment:admin": "Assign catalog items to restricted environments",
+  "networkPolicy:read": "View network policies",
+  "networkPolicy:create": "Create network policies",
+  "networkPolicy:update": "Modify network policies",
+  "networkPolicy:delete": "Delete network policies",
 
   // LLM
   "llmProxy:read": "View and list LLM proxies",
@@ -990,17 +997,20 @@ export const requiredEndpointPermissionsMap: Partial<
   [RouteId.ValidateEnvironmentNamespace]: {
     environment: ["read"],
   },
+  [RouteId.GetK8sCapabilities]: {
+    networkPolicy: ["read"],
+  },
   [RouteId.ListNetworkPolicies]: {
-    environment: ["read"],
+    networkPolicy: ["read"],
   },
   [RouteId.CreateNetworkPolicy]: {
-    environment: ["create"],
+    networkPolicy: ["create"],
   },
   [RouteId.UpdateNetworkPolicy]: {
-    environment: ["update"],
+    networkPolicy: ["update"],
   },
   [RouteId.DeleteNetworkPolicy]: {
-    environment: ["delete"],
+    networkPolicy: ["delete"],
   },
   [RouteId.UpdateKnowledgeSettings]: {
     knowledgeSettings: ["update"],

@@ -1,4 +1,5 @@
 import type * as k8s from "@kubernetes/client-node";
+import { getK8sCapabilitiesFromApi } from "@/k8s/capabilities";
 import {
   checkNamespaceDeployAccess,
   createK8sClients,
@@ -15,10 +16,7 @@ import {
   OrganizationModel,
 } from "@/models";
 import { secretManager } from "@/secrets-manager";
-import {
-  BUILT_IN_NETWORK_POLICY,
-  resolveEffectiveNetworkPolicy,
-} from "@/services/environments/network-policy";
+import { resolveEffectiveNetworkPolicy } from "@/services/environments/network-policy";
 import type { EffectiveNetworkPolicy, McpServer } from "@/types";
 import K8sDeployment, {
   fetchPlatformPodNodeSelector,
@@ -40,6 +38,7 @@ export class McpServerRuntimeManager {
   private k8sAppsApi?: k8s.AppsV1Api;
   private k8sAuthApi?: k8s.AuthorizationV1Api;
   private k8sNetworkingApi?: k8s.NetworkingV1Api;
+  private k8sCustomObjectsApi?: k8s.CustomObjectsApi;
   private k8sAttach?: k8s.Attach;
   private k8sLog?: k8s.Log;
   private k8sExec?: k8s.Exec;
@@ -60,6 +59,7 @@ export class McpServerRuntimeManager {
       this.k8sAppsApi = clients.appsApi;
       this.k8sAuthApi = clients.authApi;
       this.k8sNetworkingApi = clients.networkingApi;
+      this.k8sCustomObjectsApi = clients.customObjectsApi;
       this.k8sAttach = clients.attach;
       this.k8sExec = clients.exec;
       this.k8sLog = clients.log;
@@ -71,6 +71,7 @@ export class McpServerRuntimeManager {
       this.k8sAppsApi = undefined;
       this.k8sAuthApi = undefined;
       this.k8sNetworkingApi = undefined;
+      this.k8sCustomObjectsApi = undefined;
       this.k8sAttach = undefined;
       this.k8sLog = undefined;
       this.namespace = "";
@@ -126,7 +127,12 @@ export class McpServerRuntimeManager {
    * Initialize the runtime and start all installed MCP servers
    */
   async start(): Promise<void> {
-    if (!this.k8sApi || !this.k8sAppsApi || !this.k8sNetworkingApi) {
+    if (
+      !this.k8sApi ||
+      !this.k8sAppsApi ||
+      !this.k8sNetworkingApi ||
+      !this.k8sCustomObjectsApi
+    ) {
       throw new Error("Kubernetes API client not initialized");
     }
 
@@ -235,7 +241,7 @@ export class McpServerRuntimeManager {
       null;
 
     if (!organizationId) {
-      return BUILT_IN_NETWORK_POLICY;
+      return { source: "built_in", policy: null };
     }
 
     const org = await OrganizationModel.getById(organizationId);
@@ -277,7 +283,12 @@ export class McpServerRuntimeManager {
     userConfigValues?: Record<string, string>,
     environmentValues?: Record<string, string>,
   ): Promise<void> {
-    if (!this.k8sApi || !this.k8sAppsApi) {
+    if (
+      !this.k8sApi ||
+      !this.k8sAppsApi ||
+      !this.k8sNetworkingApi ||
+      !this.k8sCustomObjectsApi
+    ) {
       throw new Error("Kubernetes API client not initialized");
     }
 
@@ -431,6 +442,7 @@ export class McpServerRuntimeManager {
         k8sApi: this.k8sApi,
         k8sAppsApi: this.k8sAppsApi,
         k8sNetworkingApi: this.k8sNetworkingApi,
+        k8sCustomObjectsApi: this.k8sCustomObjectsApi,
         k8sAttach: this.k8sAttach,
         k8sLog: this.k8sLog,
         namespace: await this.resolveNamespaceForCatalog(catalogItem),
@@ -441,6 +453,9 @@ export class McpServerRuntimeManager {
           mcpServer,
           catalogItem,
         }),
+        networkPolicyCapabilities: (
+          await getK8sCapabilitiesFromApi(this.k8sCustomObjectsApi)
+        ).networkPolicy,
         k8sExec: this.k8sExec,
       });
 

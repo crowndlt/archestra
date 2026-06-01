@@ -30,12 +30,17 @@ export default function McpCatalogLayout({
   const { data: canManageEnvironments } = useHasPermissions({
     environment: ["create", "update", "delete"],
   });
+  const { data: canManageNetworkPolicies } = useHasPermissions({
+    networkPolicy: ["create", "update", "delete"],
+  });
 
   const tabs = [
     { label: "Catalog", href: "/mcp/registry" },
     ...(canManageEnvironments
+      ? [{ label: "Environments", href: "/mcp/registry/environments" }]
+      : []),
+    ...(canManageNetworkPolicies
       ? [
-          { label: "Environments", href: "/mcp/registry/environments" },
           {
             label: "Network Policies",
             href: "/mcp/registry/network-policies",

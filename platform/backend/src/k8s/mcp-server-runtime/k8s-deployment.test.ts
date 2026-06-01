@@ -6,7 +6,7 @@ import { vi } from "vitest";
 import type { z } from "zod";
 import config from "@/config";
 import { describe, expect, test } from "@/test";
-import type { McpServer } from "@/types";
+import type { EffectiveNetworkPolicy, McpServer } from "@/types";
 import K8sDeployment, {
   fetchPlatformPodNodeSelector,
   fetchPlatformPodTolerations,
@@ -3605,6 +3605,152 @@ describe("K8sDeployment.stopDeployment", () => {
     const k8sDeployment = createK8sDeploymentWithMockedApis({}, mockK8sAppsApi);
 
     await expect(k8sDeployment.stopDeployment()).rejects.toEqual(serverError);
+  });
+});
+
+describe("K8sDeployment.applyK8sNetworkPolicy", () => {
+  function makeNetworkPolicyTestServer(): McpServer {
+    return {
+      id: "test-server-id",
+      name: "mcp-test-server",
+      catalogId: "test-catalog-id",
+      secretId: null,
+      ownerId: null,
+      reinstallRequired: false,
+      localInstallationStatus: "idle",
+      localInstallationError: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as McpServer;
+  }
+
+  function makeNetworkPolicy(
+    overrides: Partial<NonNullable<EffectiveNetworkPolicy["policy"]>> = {},
+  ): EffectiveNetworkPolicy {
+    return {
+      source: "environment",
+      policy: {
+        id: "network-policy-id",
+        organizationId: "organization-id",
+        name: "Restricted egress",
+        description: null,
+        egressMode: "restricted",
+        domainPreset: "none",
+        allowedDomains: [],
+        allowedCidrs: [],
+        allowedHttpMethods: "all",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        ...overrides,
+      },
+    };
+  }
+
+  test("creates CiliumNetworkPolicy and removes Kubernetes NetworkPolicy when FQDN rules are available", async () => {
+    const createNamespacedCustomObject = vi.fn().mockResolvedValue({});
+    const deleteNamespacedCustomObject = vi
+      .fn()
+      .mockRejectedValue({ statusCode: 404 });
+    const createNamespacedNetworkPolicy = vi.fn().mockResolvedValue({});
+    const deleteNamespacedNetworkPolicy = vi.fn().mockResolvedValue({});
+
+    const deployment = new K8sDeployment({
+      mcpServer: makeNetworkPolicyTestServer(),
+      k8sApi: {} as k8s.CoreV1Api,
+      k8sAppsApi: {} as k8s.AppsV1Api,
+      k8sNetworkingApi: {
+        createNamespacedNetworkPolicy,
+        deleteNamespacedNetworkPolicy,
+      } as unknown as k8s.NetworkingV1Api,
+      k8sCustomObjectsApi: {
+        createNamespacedCustomObject,
+        deleteNamespacedCustomObject,
+      } as unknown as k8s.CustomObjectsApi,
+      k8sAttach: {} as Attach,
+      k8sLog: {} as Log,
+      k8sExec: {} as Exec,
+      namespace: "default",
+      catalogItem: null,
+      effectiveNetworkPolicy: makeNetworkPolicy({
+        allowedDomains: ["api.example.com"],
+      }),
+      networkPolicyCapabilities: {
+        kubernetesNetworkPolicy: true,
+        ciliumNetworkPolicy: true,
+        provider: "cilium",
+        supportsFqdn: true,
+        supportsHttpMethods: false,
+        message: null,
+      },
+    });
+
+    await deployment.applyK8sNetworkPolicy();
+
+    expect(createNamespacedCustomObject).toHaveBeenCalledWith(
+      expect.objectContaining({
+        group: "cilium.io",
+        version: "v2",
+        namespace: "default",
+        plural: "ciliumnetworkpolicies",
+      }),
+    );
+    expect(createNamespacedNetworkPolicy).not.toHaveBeenCalled();
+    expect(deleteNamespacedNetworkPolicy).toHaveBeenCalledWith({
+      name: "mcp-egress-mcp-test-server",
+      namespace: "default",
+    });
+  });
+
+  test("creates Kubernetes NetworkPolicy for CIDR-only restricted policies", async () => {
+    const createNamespacedCustomObject = vi.fn().mockResolvedValue({});
+    const deleteNamespacedCustomObject = vi
+      .fn()
+      .mockRejectedValue({ statusCode: 404 });
+    const createNamespacedNetworkPolicy = vi.fn().mockResolvedValue({});
+
+    const deployment = new K8sDeployment({
+      mcpServer: makeNetworkPolicyTestServer(),
+      k8sApi: {} as k8s.CoreV1Api,
+      k8sAppsApi: {} as k8s.AppsV1Api,
+      k8sNetworkingApi: {
+        createNamespacedNetworkPolicy,
+        deleteNamespacedNetworkPolicy: vi.fn().mockRejectedValue({
+          statusCode: 404,
+        }),
+      } as unknown as k8s.NetworkingV1Api,
+      k8sCustomObjectsApi: {
+        createNamespacedCustomObject,
+        deleteNamespacedCustomObject,
+      } as unknown as k8s.CustomObjectsApi,
+      k8sAttach: {} as Attach,
+      k8sLog: {} as Log,
+      k8sExec: {} as Exec,
+      namespace: "default",
+      catalogItem: null,
+      effectiveNetworkPolicy: makeNetworkPolicy({
+        allowedCidrs: ["203.0.113.0/24"],
+      }),
+      networkPolicyCapabilities: {
+        kubernetesNetworkPolicy: true,
+        ciliumNetworkPolicy: false,
+        provider: "kubernetes",
+        supportsFqdn: false,
+        supportsHttpMethods: false,
+        message: null,
+      },
+    });
+
+    await deployment.applyK8sNetworkPolicy();
+
+    expect(createNamespacedNetworkPolicy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        namespace: "default",
+        body: expect.objectContaining({
+          kind: "NetworkPolicy",
+        }),
+      }),
+    );
+    expect(createNamespacedCustomObject).not.toHaveBeenCalled();
   });
 });
 

@@ -35,6 +35,10 @@ const networkPoliciesTable = pgTable(
       .$type<string[]>()
       .notNull()
       .default([]),
+    allowedCidrs: jsonb("allowed_cidrs")
+      .$type<string[]>()
+      .notNull()
+      .default([]),
     allowedHttpMethods: text("allowed_http_methods")
       .$type<NetworkPolicyAllowedHttpMethods>()
       .notNull()
