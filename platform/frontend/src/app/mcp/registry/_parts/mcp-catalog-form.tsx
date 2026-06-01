@@ -817,7 +817,6 @@ export function McpCatalogForm({
                   )}
                 />
               </div>
-
               <FormField
                 control={form.control}
                 name="description"
@@ -835,7 +834,6 @@ export function McpCatalogForm({
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="scope"
@@ -884,7 +882,6 @@ export function McpCatalogForm({
                   </FormItem>
                 )}
               />
-
               {showEnvironmentSelector && (
                 <FormField
                   control={form.control}
@@ -949,7 +946,6 @@ export function McpCatalogForm({
                   }}
                 />
               )}
-
               {mode === "create" && (
                 <div className="space-y-2">
                   <Label>Server Type</Label>
@@ -1012,7 +1008,6 @@ export function McpCatalogForm({
                   </div>
                 </div>
               )}
-
               {currentServerType === "local" && (
                 <div className="space-y-2">
                   <Label>Tenancy</Label>
