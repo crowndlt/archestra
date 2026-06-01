@@ -105,7 +105,9 @@ export function buildManagedGkeFqdnNetworkPolicy(params: {
 }): Record<string, unknown> {
   const policy = params.effectivePolicy.policy;
   if (!policy) {
-    throw new Error("Cannot build a managed FQDNNetworkPolicy without a policy");
+    throw new Error(
+      "Cannot build a managed FQDNNetworkPolicy without a policy",
+    );
   }
 
   const labels = sanitizeMetadataLabels({

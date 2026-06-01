@@ -3,6 +3,7 @@ import { requiredEndpointPermissionsMap } from "@shared/access-control";
 import { type Mock, vi } from "vitest";
 import type { FastifyInstanceWithZod } from "@/server";
 import { createFastifyInstance } from "@/server";
+import { createNetworkPolicy } from "@/services/environments/network-policy";
 import { afterEach, describe, expect, test } from "@/test";
 import { ApiError, type User } from "@/types";
 
@@ -115,6 +116,63 @@ describe("environment routes", () => {
     });
     expect(deleted.statusCode).toBe(200);
     expect(deleted.json().success).toBe(true);
+  });
+
+  test("can create and update an environment network policy assignment", async ({
+    makeUser,
+    makeOrganization,
+  }) => {
+    vi.clearAllMocks();
+    mockHasPermission.mockResolvedValue({ success: true, error: null });
+    const user = await makeUser();
+    const organization = await makeOrganization();
+    organizationId = organization.id;
+    app = await buildApp(user, organizationId);
+    const policy = await createNetworkPolicy({
+      organizationId,
+      data: { name: "Sandbox egress" },
+    });
+
+    const created = await app.inject({
+      method: "POST",
+      url: "/api/organization/environments",
+      payload: { name: "Sandbox", networkPolicyId: policy.id },
+    });
+    expect(created.statusCode).toBe(200);
+    expect(created.json().networkPolicyId).toBe(policy.id);
+
+    const updated = await app.inject({
+      method: "PATCH",
+      url: `/api/organization/environments/${created.json().id}`,
+      payload: { networkPolicyId: null },
+    });
+    expect(updated.statusCode).toBe(200);
+    expect(updated.json().networkPolicyId).toBeNull();
+  });
+
+  test("rejects environment network policy assignments from another organization", async ({
+    makeUser,
+    makeOrganization,
+  }) => {
+    vi.clearAllMocks();
+    mockHasPermission.mockResolvedValue({ success: true, error: null });
+    const user = await makeUser();
+    const organization = await makeOrganization();
+    const otherOrganization = await makeOrganization();
+    organizationId = organization.id;
+    app = await buildApp(user, organizationId);
+    const otherPolicy = await createNetworkPolicy({
+      organizationId: otherOrganization.id,
+      data: { name: "Other org egress" },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/organization/environments",
+      payload: { name: "Sandbox", networkPolicyId: otherPolicy.id },
+    });
+    expect(response.statusCode).toBe(400);
+    expect(response.json().error.message).toBe("Network policy not found");
   });
 
   test("member without environment:create is forbidden", async ({

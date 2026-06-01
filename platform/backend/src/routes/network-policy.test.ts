@@ -142,6 +142,45 @@ describe("network policy routes", () => {
     );
   });
 
+  for (const [method, url, expectedPermission] of [
+    ["GET", "/api/network-policies", { networkPolicy: ["read"] }],
+    [
+      "PATCH",
+      "/api/network-policies/00000000-0000-0000-0000-000000000000",
+      { networkPolicy: ["update"] },
+    ],
+    [
+      "DELETE",
+      "/api/network-policies/00000000-0000-0000-0000-000000000000",
+      { networkPolicy: ["delete"] },
+    ],
+  ] as const) {
+    test(`requires networkPolicy permission for ${method} ${url}`, async ({
+      makeOrganization,
+      makeUser,
+    }) => {
+      vi.clearAllMocks();
+      mockHasPermission.mockResolvedValue({
+        success: false,
+        error: new Error("Forbidden"),
+      });
+      const user = await makeUser();
+      const organization = await makeOrganization();
+      app = await buildApp(user, organization.id);
+
+      const response = await app.inject({
+        method,
+        url,
+        payload: method === "PATCH" ? { name: "No access" } : undefined,
+      });
+      expect(response.statusCode).toBe(403);
+      expect(mockHasPermission).toHaveBeenCalledWith(
+        expectedPermission,
+        expect.any(Object),
+      );
+    });
+  }
+
   test("duplicate names return 409", async ({ makeOrganization, makeUser }) => {
     vi.clearAllMocks();
     mockHasPermission.mockResolvedValue({ success: true, error: null });
@@ -180,6 +219,25 @@ describe("network policy routes", () => {
       payload: {
         name: "Invalid CIDR",
         allowedCidrs: ["not-a-cidr"],
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  test("invalid domains return 400", async ({ makeOrganization, makeUser }) => {
+    vi.clearAllMocks();
+    mockHasPermission.mockResolvedValue({ success: true, error: null });
+    const user = await makeUser();
+    const organization = await makeOrganization();
+    app = await buildApp(user, organization.id);
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/network-policies",
+      payload: {
+        name: "Invalid domain",
+        allowedDomains: ["https://example.com/path"],
       },
     });
 

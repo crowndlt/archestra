@@ -3697,7 +3697,7 @@ describe("K8sDeployment.applyK8sNetworkPolicy", () => {
     );
     expect(createNamespacedNetworkPolicy).not.toHaveBeenCalled();
     expect(deleteNamespacedNetworkPolicy).toHaveBeenCalledWith({
-      name: "mcp-egress-mcp-test-server",
+      name: "mcp-egress-mcp-mcp-test-server",
       namespace: "default",
     });
   });
