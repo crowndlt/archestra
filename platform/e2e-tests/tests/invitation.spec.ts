@@ -1,5 +1,5 @@
-import type { Page } from "@playwright/test";
 import { E2eTestId } from "@archestra/shared";
+import type { Page } from "@playwright/test";
 import { ADMIN_EMAIL, ADMIN_PASSWORD } from "../consts";
 import { expect, test } from "../fixtures";
 import { clickButton, navigateAndVerifyAuth } from "../utils";

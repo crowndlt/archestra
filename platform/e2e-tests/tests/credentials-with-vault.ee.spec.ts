@@ -1,4 +1,3 @@
-import type { Page } from "@playwright/test";
 import {
   archestraApiSdk,
   DEFAULT_VAULT_TOKEN,
@@ -6,6 +5,7 @@ import {
   SecretsManagerType,
 } from "@archestra/shared";
 import { testMcpServerCommand } from "@archestra/shared/test-mcp-server";
+import type { Page } from "@playwright/test";
 import {
   ADMIN_EMAIL,
   DEFAULT_TEAM_NAME,

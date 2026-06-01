@@ -1,6 +1,6 @@
-import { type APIRequestContext, expect, type Page } from "@playwright/test";
 import { archestraApiSdk } from "@archestra/shared";
 import { testMcpServerCommand } from "@archestra/shared/test-mcp-server";
+import { type APIRequestContext, expect, type Page } from "@playwright/test";
 import { E2eTestId, getE2eRequestUrl, UI_BASE_URL } from "../consts";
 import { goToPage } from "../fixtures";
 

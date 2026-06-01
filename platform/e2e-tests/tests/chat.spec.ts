@@ -1,5 +1,5 @@
-import type { Page } from "@playwright/test";
 import { E2eTestId } from "@archestra/shared";
+import type { Page } from "@playwright/test";
 import { WIREMOCK_BASE_URL } from "../consts";
 import {
   ensureWireMockAnthropicChatProvider,
