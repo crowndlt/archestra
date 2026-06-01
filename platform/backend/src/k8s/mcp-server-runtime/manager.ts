@@ -12,9 +12,14 @@ import {
   InternalMcpCatalogModel,
   McpHttpSessionModel,
   McpServerModel,
+  OrganizationModel,
 } from "@/models";
 import { secretManager } from "@/secrets-manager";
-import type { McpServer } from "@/types";
+import {
+  BUILT_IN_NETWORK_POLICY,
+  resolveEffectiveNetworkPolicy,
+} from "@/services/environments/network-policy";
+import type { EffectiveNetworkPolicy, McpServer } from "@/types";
 import K8sDeployment, {
   fetchPlatformPodNodeSelector,
   fetchPlatformPodTolerations,
@@ -34,6 +39,7 @@ export class McpServerRuntimeManager {
   private k8sApi?: k8s.CoreV1Api;
   private k8sAppsApi?: k8s.AppsV1Api;
   private k8sAuthApi?: k8s.AuthorizationV1Api;
+  private k8sNetworkingApi?: k8s.NetworkingV1Api;
   private k8sAttach?: k8s.Attach;
   private k8sLog?: k8s.Log;
   private k8sExec?: k8s.Exec;
@@ -53,6 +59,7 @@ export class McpServerRuntimeManager {
       this.k8sApi = clients.coreApi;
       this.k8sAppsApi = clients.appsApi;
       this.k8sAuthApi = clients.authApi;
+      this.k8sNetworkingApi = clients.networkingApi;
       this.k8sAttach = clients.attach;
       this.k8sExec = clients.exec;
       this.k8sLog = clients.log;
@@ -63,6 +70,7 @@ export class McpServerRuntimeManager {
       this.k8sApi = undefined;
       this.k8sAppsApi = undefined;
       this.k8sAuthApi = undefined;
+      this.k8sNetworkingApi = undefined;
       this.k8sAttach = undefined;
       this.k8sLog = undefined;
       this.namespace = "";
@@ -118,7 +126,7 @@ export class McpServerRuntimeManager {
    * Initialize the runtime and start all installed MCP servers
    */
   async start(): Promise<void> {
-    if (!this.k8sApi || !this.k8sAppsApi) {
+    if (!this.k8sApi || !this.k8sAppsApi || !this.k8sNetworkingApi) {
       throw new Error("Kubernetes API client not initialized");
     }
 
@@ -212,6 +220,31 @@ export class McpServerRuntimeManager {
     if (!catalogItem?.environmentId) return this.namespace;
     const env = await EnvironmentModel.findById(catalogItem.environmentId);
     return env?.namespace ?? this.namespace;
+  }
+
+  private async resolveNetworkPolicyForDeployment(params: {
+    mcpServer: McpServer;
+    catalogItem:
+      | Awaited<ReturnType<typeof InternalMcpCatalogModel.findById>>
+      | null
+      | undefined;
+  }): Promise<EffectiveNetworkPolicy> {
+    const organizationId =
+      params.catalogItem?.organizationId ??
+      (await OrganizationModel.getFirst())?.id ??
+      null;
+
+    if (!organizationId) {
+      return BUILT_IN_NETWORK_POLICY;
+    }
+
+    const org = await OrganizationModel.getById(organizationId);
+
+    return resolveEffectiveNetworkPolicy({
+      organizationId,
+      environmentId: params.catalogItem?.environmentId,
+      defaultNetworkPolicyId: org?.defaultNetworkPolicyId,
+    });
   }
 
   /**
@@ -397,12 +430,17 @@ export class McpServerRuntimeManager {
         mcpServer,
         k8sApi: this.k8sApi,
         k8sAppsApi: this.k8sAppsApi,
+        k8sNetworkingApi: this.k8sNetworkingApi,
         k8sAttach: this.k8sAttach,
         k8sLog: this.k8sLog,
         namespace: await this.resolveNamespaceForCatalog(catalogItem),
         catalogItem,
         userConfigValues,
         environmentValues: effectiveEnvironmentValues,
+        effectiveNetworkPolicy: await this.resolveNetworkPolicyForDeployment({
+          mcpServer,
+          catalogItem,
+        }),
         k8sExec: this.k8sExec,
       });
 
@@ -492,6 +530,9 @@ export class McpServerRuntimeManager {
 
         // Delete docker-registry secrets (if any were created for imagePullSecrets)
         await k8sDeployment.deleteDockerRegistrySecrets();
+
+        // Delete K8s NetworkPolicy (if it exists)
+        await k8sDeployment.deleteK8sNetworkPolicy();
       } else {
         logger.info(
           { mcpServerId },
@@ -541,6 +582,7 @@ export class McpServerRuntimeManager {
     if (
       !this.k8sApi ||
       !this.k8sAppsApi ||
+      !this.k8sNetworkingApi ||
       !this.k8sAttach ||
       !this.k8sLog ||
       !this.k8sExec
@@ -581,10 +623,15 @@ export class McpServerRuntimeManager {
         mcpServer,
         k8sApi: this.k8sApi,
         k8sAppsApi: this.k8sAppsApi,
+        k8sNetworkingApi: this.k8sNetworkingApi,
         k8sAttach: this.k8sAttach,
         k8sLog: this.k8sLog,
         namespace: await this.resolveNamespaceForCatalog(catalogItem),
         catalogItem,
+        effectiveNetworkPolicy: await this.resolveNetworkPolicyForDeployment({
+          mcpServer,
+          catalogItem,
+        }),
         k8sExec: this.k8sExec,
       });
 
@@ -692,6 +739,7 @@ export class McpServerRuntimeManager {
       await k8sDeployment.deleteK8sService();
       await k8sDeployment.deleteK8sSecret();
       await k8sDeployment.deleteDockerRegistrySecrets();
+      await k8sDeployment.deleteK8sNetworkPolicy();
     }
 
     // Clear every sibling's in-memory entry — the K8s objects are gone.

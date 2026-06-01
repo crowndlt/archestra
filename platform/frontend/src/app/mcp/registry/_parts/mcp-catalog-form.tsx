@@ -82,7 +82,6 @@ import {
   MCP_SECRET_AUTOCOMPLETE,
 } from "@/lib/mcp/mcp-form-autocomplete";
 import { useEnvironments } from "@/lib/organization/environment.query";
-import { useNetworkPolicies } from "@/lib/organization/network-policy.query";
 import { useDefaultEnvironment } from "@/lib/organization.query";
 import { useGetSecret } from "@/lib/secrets.query";
 import { useTeams } from "@/lib/teams/team.query";
@@ -109,8 +108,6 @@ const ExternalSecretSelector = lazy(
 // Select cannot use an empty-string item value, so a sentinel maps to `null`
 // (no environment assigned).
 const ENVIRONMENT_DEFAULT_VALUE = "__default__";
-const NETWORK_POLICY_DEFAULT_VALUE = "__default_network_policy__";
-
 interface McpCatalogFormProps {
   mode: "create" | "edit";
   initialValues?: archestraApiTypes.GetInternalMcpCatalogResponses["200"][number];
@@ -253,7 +250,6 @@ export function McpCatalogForm({
           scope: "personal",
           teams: [],
           environmentId: null,
-          networkPolicyId: null,
         }),
   });
 
@@ -529,7 +525,6 @@ export function McpCatalogForm({
   const { data: teams } = useTeams();
   const { data: environmentList } = useEnvironments();
   const environments = environmentList?.environments;
-  const { data: networkPolicies = [] } = useNetworkPolicies();
   const { data: canDeployRestricted } = useHasPermissions({
     environment: ["admin"],
   });
@@ -954,58 +949,6 @@ export function McpCatalogForm({
                   }}
                 />
               )}
-
-              <FormField
-                control={form.control}
-                name="networkPolicyId"
-                render={({ field }) => (
-                  <FormItem className="space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <Label>Network Policy</Label>
-                      <Link
-                        href="/mcp/registry/network-policies"
-                        className="text-xs text-primary hover:underline"
-                      >
-                        Manage policies
-                      </Link>
-                    </div>
-                    <FormControl>
-                      <Select
-                        value={field.value ?? NETWORK_POLICY_DEFAULT_VALUE}
-                        onValueChange={(value) =>
-                          field.onChange(
-                            value === NETWORK_POLICY_DEFAULT_VALUE
-                              ? null
-                              : value,
-                          )
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent position="popper">
-                          <SelectItem value={NETWORK_POLICY_DEFAULT_VALUE}>
-                            Use environment default
-                          </SelectItem>
-                          {networkPolicies.map((policy) => (
-                            <SelectItem
-                              key={policy.id}
-                              value={policy.id}
-                              description={policy.description ?? undefined}
-                            >
-                              {policy.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormDescription>
-                      Optional override for this catalog item.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               {mode === "create" && (
                 <div className="space-y-2">

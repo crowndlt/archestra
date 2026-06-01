@@ -86,9 +86,9 @@ An environment can be marked **restricted**. Only members with the `environment:
 
 Every entry starts on the virtual **Default** environment, which is not a stored row — it simply means "no environment assigned". Selecting Default in the registry form clears the assignment. Deleting an environment moves its entries back to Default rather than removing them.
 
-Network policies are reusable egress profiles. They can disable internet egress, allow all egress, or allow only selected domain presets plus custom domains. The effective policy is resolved in this order: installation override, catalog override, environment default, then platform default.
+Network policies are reusable egress profiles. They can disable internet egress, allow all egress, or allow only selected domain presets plus custom domains. MCP servers inherit the network policy from their assigned environment. If the environment has no policy, Archestra uses the platform default.
 
-Create and edit network policies from the organization-level network policy page. The registry and installation forms only select an existing policy.
+Create and edit network policies from the organization-level network policy page, then assign them to environments.
 
 ## From Registry To Gateway
 

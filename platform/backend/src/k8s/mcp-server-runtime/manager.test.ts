@@ -45,6 +45,7 @@ vi.mock("@kubernetes/client-node", () => {
     KubeConfig: MockKubeConfig,
     CoreV1Api: vi.fn(),
     AppsV1Api: vi.fn(),
+    NetworkingV1Api: vi.fn(),
     BatchV1Api: vi.fn(),
     Attach: vi.fn(),
     Log: vi.fn(),
@@ -73,6 +74,7 @@ vi.mock("@/config", async (importOriginal) => {
 const mockCreateK8sSecret = vi.fn().mockResolvedValue(undefined);
 const mockStartOrCreateDeployment = vi.fn().mockResolvedValue(undefined);
 const mockCreateDockerRegistrySecrets = vi.fn().mockResolvedValue([]);
+const mockDeleteK8sNetworkPolicy = vi.fn().mockResolvedValue(undefined);
 const mockK8sDeploymentInstances: Array<{
   options: Record<string, unknown>;
   createK8sSecret: ReturnType<typeof vi.fn>;
@@ -97,6 +99,26 @@ vi.mock("@/models/mcp-http-session", () => ({
   },
 }));
 
+vi.mock("@/models/organization", () => ({
+  default: {
+    getFirst: vi.fn().mockResolvedValue({
+      id: "test-org",
+      defaultNetworkPolicyId: null,
+    }),
+    getById: vi.fn().mockResolvedValue({
+      id: "test-org",
+      defaultNetworkPolicyId: null,
+    }),
+  },
+}));
+
+vi.mock("@/services/environments/network-policy", () => ({
+  BUILT_IN_NETWORK_POLICY: { source: "built_in", policy: null },
+  resolveEffectiveNetworkPolicy: vi
+    .fn()
+    .mockResolvedValue({ source: "built_in", policy: null }),
+}));
+
 vi.mock("@/secrets-manager", () => ({
   secretManager: vi.fn(() => ({
     getSecret: vi.fn(),
@@ -110,12 +132,14 @@ vi.mock("./k8s-deployment", () => {
       createK8sSecret: ReturnType<typeof vi.fn>;
       startOrCreateDeployment: ReturnType<typeof vi.fn>;
       createDockerRegistrySecrets: ReturnType<typeof vi.fn>;
+      deleteK8sNetworkPolicy: ReturnType<typeof vi.fn>;
 
       constructor(options: Record<string, unknown>) {
         this.options = options;
         this.createK8sSecret = mockCreateK8sSecret;
         this.startOrCreateDeployment = mockStartOrCreateDeployment;
         this.createDockerRegistrySecrets = mockCreateDockerRegistrySecrets;
+        this.deleteK8sNetworkPolicy = mockDeleteK8sNetworkPolicy;
         mockK8sDeploymentInstances.push({
           options,
           createK8sSecret: this.createK8sSecret,
@@ -397,12 +421,14 @@ describe("McpServerRuntimeManager", () => {
       const mockDeleteDockerRegistrySecrets = vi
         .fn()
         .mockResolvedValue(undefined);
+      const mockDeleteK8sNetworkPolicy = vi.fn().mockResolvedValue(undefined);
 
       const mockDeployment = {
         stopDeployment: mockStopDeployment,
         deleteK8sService: mockDeleteK8sService,
         deleteK8sSecret: mockDeleteK8sSecret,
         deleteDockerRegistrySecrets: mockDeleteDockerRegistrySecrets,
+        deleteK8sNetworkPolicy: mockDeleteK8sNetworkPolicy,
       };
 
       // Access internal map and add mock deployment
@@ -417,6 +443,7 @@ describe("McpServerRuntimeManager", () => {
       expect(mockDeleteK8sService).toHaveBeenCalledTimes(1);
       expect(mockDeleteK8sSecret).toHaveBeenCalledTimes(1);
       expect(mockDeleteDockerRegistrySecrets).toHaveBeenCalledTimes(1);
+      expect(mockDeleteK8sNetworkPolicy).toHaveBeenCalledTimes(1);
 
       // Verify deployment was removed from map
       // @ts-expect-error - accessing private property for testing
@@ -477,6 +504,9 @@ describe("McpServerRuntimeManager", () => {
         deleteDockerRegistrySecrets: vi.fn().mockImplementation(async () => {
           callOrder.push("deleteDockerRegistrySecrets");
         }),
+        deleteK8sNetworkPolicy: vi.fn().mockImplementation(async () => {
+          callOrder.push("deleteK8sNetworkPolicy");
+        }),
       };
 
       // @ts-expect-error - accessing private property for testing
@@ -490,6 +520,7 @@ describe("McpServerRuntimeManager", () => {
         "deleteK8sService",
         "deleteK8sSecret",
         "deleteDockerRegistrySecrets",
+        "deleteK8sNetworkPolicy",
       ]);
 
       mockLoadFromDefault.mockRestore();
@@ -511,6 +542,7 @@ describe("McpServerRuntimeManager", () => {
         deleteK8sService: vi.fn().mockResolvedValue(undefined),
         deleteK8sSecret: vi.fn().mockResolvedValue(undefined),
         deleteDockerRegistrySecrets: vi.fn().mockResolvedValue(undefined),
+        deleteK8sNetworkPolicy: vi.fn().mockResolvedValue(undefined),
       };
     }
 
@@ -704,6 +736,7 @@ describe("McpServerRuntimeManager", () => {
       const deleteK8sService = vi.fn().mockResolvedValue(undefined);
       const deleteK8sSecret = vi.fn().mockResolvedValue(undefined);
       const deleteDockerRegistrySecrets = vi.fn().mockResolvedValue(undefined);
+      const deleteK8sNetworkPolicy = vi.fn().mockResolvedValue(undefined);
       const waitForDeploymentReady = vi.fn().mockResolvedValue(undefined);
 
       // @ts-expect-error - accessing private property for testing
@@ -712,6 +745,7 @@ describe("McpServerRuntimeManager", () => {
         deleteK8sService,
         deleteK8sSecret,
         deleteDockerRegistrySecrets,
+        deleteK8sNetworkPolicy,
         waitForDeploymentReady,
       });
       // Also seed tenant B so we can verify its entry gets dropped too.
@@ -721,6 +755,7 @@ describe("McpServerRuntimeManager", () => {
         deleteK8sService: vi.fn(),
         deleteK8sSecret: vi.fn(),
         deleteDockerRegistrySecrets: vi.fn(),
+        deleteK8sNetworkPolicy: vi.fn(),
       });
 
       // Spy startServer so we don't exercise the full pod-creation flow —
@@ -744,6 +779,7 @@ describe("McpServerRuntimeManager", () => {
       expect(deleteK8sService).toHaveBeenCalledTimes(1);
       expect(deleteK8sSecret).toHaveBeenCalledTimes(1);
       expect(deleteDockerRegistrySecrets).toHaveBeenCalledTimes(1);
+      expect(deleteK8sNetworkPolicy).toHaveBeenCalledTimes(1);
 
       // Both siblings' in-memory entries cleared.
       // @ts-expect-error - accessing private property for testing

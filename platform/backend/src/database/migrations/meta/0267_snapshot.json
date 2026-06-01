@@ -4451,12 +4451,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "network_policy_id": {
-          "name": "network_policy_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "catalog_reinstall_required": {
           "name": "catalog_reinstall_required",
           "type": "boolean",
@@ -4554,21 +4548,6 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "internal_mcp_catalog_network_policy_id_idx": {
-          "name": "internal_mcp_catalog_network_policy_id_idx",
-          "columns": [
-            {
-              "expression": "network_policy_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
       "foreignKeys": {
@@ -4656,19 +4635,6 @@
           "tableTo": "environment",
           "columnsFrom": [
             "environment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "internal_mcp_catalog_network_policy_id_network_policies_id_fk": {
-          "name": "internal_mcp_catalog_network_policy_id_network_policies_id_fk",
-          "tableFrom": "internal_mcp_catalog",
-          "tableTo": "network_policies",
-          "columnsFrom": [
-            "network_policy_id"
           ],
           "columnsTo": [
             "id"
@@ -6876,12 +6842,6 @@
           "notNull": true,
           "default": "'{}'::jsonb"
         },
-        "network_policy_id": {
-          "name": "network_policy_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "owner_id": {
           "name": "owner_id",
           "type": "text",
@@ -6964,21 +6924,6 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "mcp_server_network_policy_id_idx": {
-          "name": "mcp_server_network_policy_id_idx",
-          "columns": [
-            {
-              "expression": "network_policy_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
       "foreignKeys": {
@@ -7001,19 +6946,6 @@
           "tableTo": "secret",
           "columnsFrom": [
             "secret_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "mcp_server_network_policy_id_network_policies_id_fk": {
-          "name": "mcp_server_network_policy_id_network_policies_id_fk",
-          "tableFrom": "mcp_server",
-          "tableTo": "network_policies",
-          "columnsFrom": [
-            "network_policy_id"
           ],
           "columnsTo": [
             "id"

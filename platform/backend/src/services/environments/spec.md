@@ -56,17 +56,15 @@ Network policies define:
 Policy resolution:
 
 1. An environment can reference one default network policy.
-2. An MCP server catalog item can optionally reference a network policy override.
-3. An MCP server installation can optionally reference a network policy override.
-4. Effective policy order is: installation override -> catalog override -> environment default
-   -> built-in platform default.
+2. MCP server catalog items select an environment; they do not carry their own network policy.
+3. MCP server installations inherit the policy from the catalog item's environment.
+4. Effective policy order is: environment default -> built-in platform default.
 
 UX:
 
 - Network policy CRUD belongs on a dedicated page.
 - Environment create/edit selects a default network policy.
-- MCP catalog/install forms expose only an optional network policy dropdown and link to the
-  network policy page.
+- MCP catalog/install forms do not expose network policy controls.
 
 Runtime mapping:
 
@@ -74,6 +72,10 @@ Runtime mapping:
 - Policies select only Archestra-managed workload pods for the specific installation/runtime.
 - Kubernetes network policies are additive, so Archestra must generate a complete managed policy
   set for each selected workload and avoid relying on policy ordering.
+- Kubernetes `NetworkPolicy` is L3/L4 only. The managed object enforces coarse egress isolation
+  (`off` denies egress; `restricted` currently permits DNS only and fails closed for external
+  egress). Domain allowlists and HTTP method restrictions require a later CNI-specific policy
+  backend or egress proxy and are stored as policy intent, not enforced by vanilla Kubernetes.
 - Enforcement requires a Kubernetes network plugin that supports `NetworkPolicy`.
 - The Helm chart service account needs RBAC for CRUD on `networkpolicies.networking.k8s.io`.
 

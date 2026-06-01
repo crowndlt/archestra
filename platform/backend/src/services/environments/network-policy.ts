@@ -66,7 +66,7 @@ export async function deleteNetworkPolicy(params: {
   if (countTotalReferences(references) > 0) {
     throw new ApiError(
       409,
-      "This network policy is still assigned. Clear its environment, catalog, or installation assignments before deleting it.",
+      "This network policy is still assigned. Clear its environment assignments before deleting it.",
     );
   }
 
@@ -92,25 +92,9 @@ export async function assertNetworkPolicyBelongsToOrganization(params: {
 
 export async function resolveEffectiveNetworkPolicy(params: {
   organizationId: string;
-  installationNetworkPolicyId?: string | null;
-  catalogNetworkPolicyId?: string | null;
   environmentId?: string | null;
   defaultNetworkPolicyId?: string | null;
 }): Promise<EffectiveNetworkPolicy> {
-  const installationPolicy = await findPolicyOrThrow({
-    source: "installation",
-    networkPolicyId: params.installationNetworkPolicyId,
-    organizationId: params.organizationId,
-  });
-  if (installationPolicy) return installationPolicy;
-
-  const catalogPolicy = await findPolicyOrThrow({
-    source: "catalog",
-    networkPolicyId: params.catalogNetworkPolicyId,
-    organizationId: params.organizationId,
-  });
-  if (catalogPolicy) return catalogPolicy;
-
   if (params.environmentId) {
     const environment = await EnvironmentModel.findByIdForOrganization(
       params.environmentId,
@@ -160,12 +144,7 @@ async function assertUniqueName(params: {
 function countTotalReferences(
   references: NetworkPolicyReferenceCounts,
 ): number {
-  return (
-    references.environments +
-    references.defaultEnvironments +
-    references.catalogItems +
-    references.mcpServerInstallations
-  );
+  return references.environments + references.defaultEnvironments;
 }
 
 async function findPolicyOrThrow(params: {

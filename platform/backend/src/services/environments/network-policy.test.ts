@@ -1,5 +1,5 @@
 import { describe, expect } from "vitest";
-import { InternalMcpCatalogModel, OrganizationModel } from "@/models";
+import { OrganizationModel } from "@/models";
 import {
   createEnvironment,
   updateEnvironment,
@@ -100,13 +100,10 @@ describe("NetworkPolicyService", () => {
     ).resolves.toBeUndefined();
   });
 
-  test("resolveEffectiveNetworkPolicy prefers installation, then catalog, then environment, then default", async ({
-    makeMcpServer,
+  test("resolveEffectiveNetworkPolicy prefers environment, then default", async ({
     makeOrganization,
-    makeUser,
   }) => {
     const org = await makeOrganization();
-    const user = await makeUser();
     const defaultPolicy = await createNetworkPolicy({
       organizationId: org.id,
       data: { name: "Default" },
@@ -114,14 +111,6 @@ describe("NetworkPolicyService", () => {
     const envPolicy = await createNetworkPolicy({
       organizationId: org.id,
       data: { name: "Environment" },
-    });
-    const catalogPolicy = await createNetworkPolicy({
-      organizationId: org.id,
-      data: { name: "Catalog" },
-    });
-    const installPolicy = await createNetworkPolicy({
-      organizationId: org.id,
-      data: { name: "Install" },
     });
 
     await OrganizationModel.patch(org.id, {
@@ -131,51 +120,11 @@ describe("NetworkPolicyService", () => {
       organizationId: org.id,
       data: { name: "Prod", networkPolicyId: envPolicy.id },
     });
-    const catalog = await InternalMcpCatalogModel.create(
-      {
-        name: "resolved-catalog",
-        serverType: "remote",
-        serverUrl: "https://api.example.com/mcp/",
-        scope: "org",
+
+    await expect(
+      resolveEffectiveNetworkPolicy({
+        organizationId: org.id,
         environmentId: env.id,
-        networkPolicyId: catalogPolicy.id,
-      },
-      { organizationId: org.id, authorId: user.id },
-    );
-    const install = await makeMcpServer({
-      catalogId: catalog.id,
-      networkPolicyId: installPolicy.id,
-    });
-
-    await expect(
-      resolveEffectiveNetworkPolicy({
-        organizationId: org.id,
-        installationNetworkPolicyId: install.networkPolicyId,
-        catalogNetworkPolicyId: catalog.networkPolicyId,
-        environmentId: catalog.environmentId,
-        defaultNetworkPolicyId: defaultPolicy.id,
-      }),
-    ).resolves.toMatchObject({
-      source: "installation",
-      policy: { id: installPolicy.id },
-    });
-
-    await expect(
-      resolveEffectiveNetworkPolicy({
-        organizationId: org.id,
-        catalogNetworkPolicyId: catalog.networkPolicyId,
-        environmentId: catalog.environmentId,
-        defaultNetworkPolicyId: defaultPolicy.id,
-      }),
-    ).resolves.toMatchObject({
-      source: "catalog",
-      policy: { id: catalogPolicy.id },
-    });
-
-    await expect(
-      resolveEffectiveNetworkPolicy({
-        organizationId: org.id,
-        environmentId: catalog.environmentId,
         defaultNetworkPolicyId: defaultPolicy.id,
       }),
     ).resolves.toMatchObject({
@@ -212,7 +161,7 @@ describe("NetworkPolicyService", () => {
     await expect(
       resolveEffectiveNetworkPolicy({
         organizationId: org.id,
-        installationNetworkPolicyId: MISSING_ID,
+        defaultNetworkPolicyId: MISSING_ID,
       }),
     ).rejects.toMatchObject({ statusCode: 404 });
   });

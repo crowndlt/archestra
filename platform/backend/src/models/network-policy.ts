@@ -104,12 +104,7 @@ class NetworkPolicyModel {
   static async countReferences(
     networkPolicyId: string,
   ): Promise<NetworkPolicyReferenceCounts> {
-    const [
-      environments,
-      defaultEnvironments,
-      catalogItems,
-      mcpServerInstallations,
-    ] = await Promise.all([
+    const [environments, defaultEnvironments] = await Promise.all([
       db
         .select({ count: count() })
         .from(schema.environmentsTable)
@@ -120,23 +115,11 @@ class NetworkPolicyModel {
         .where(
           eq(schema.organizationsTable.defaultNetworkPolicyId, networkPolicyId),
         ),
-      db
-        .select({ count: count() })
-        .from(schema.internalMcpCatalogTable)
-        .where(
-          eq(schema.internalMcpCatalogTable.networkPolicyId, networkPolicyId),
-        ),
-      db
-        .select({ count: count() })
-        .from(schema.mcpServersTable)
-        .where(eq(schema.mcpServersTable.networkPolicyId, networkPolicyId)),
     ]);
 
     return {
       environments: environments[0]?.count ?? 0,
       defaultEnvironments: defaultEnvironments[0]?.count ?? 0,
-      catalogItems: catalogItems[0]?.count ?? 0,
-      mcpServerInstallations: mcpServerInstallations[0]?.count ?? 0,
     };
   }
 }

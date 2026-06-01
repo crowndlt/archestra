@@ -410,12 +410,7 @@ function DeleteNetworkPolicyDialog({
 }
 
 function totalReferences(policy: NetworkPolicyWithReferences) {
-  return (
-    policy.references.environments +
-    policy.references.defaultEnvironments +
-    policy.references.catalogItems +
-    policy.references.mcpServerInstallations
-  );
+  return policy.references.environments + policy.references.defaultEnvironments;
 }
 
 function formatEgressMode(mode: EgressMode) {

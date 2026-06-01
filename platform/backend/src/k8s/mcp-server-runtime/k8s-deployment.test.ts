@@ -37,6 +37,7 @@ function createK8sDeploymentInstance(
   // Create mock K8s API objects
   const mockK8sApi = {} as k8s.CoreV1Api;
   const mockK8sAppsApi = {} as k8s.AppsV1Api;
+  const mockK8sNetworkingApi = {} as k8s.NetworkingV1Api;
   const mockK8sAttach = {} as Attach;
   const mockK8sLog = {} as Log;
 
@@ -54,6 +55,7 @@ function createK8sDeploymentInstance(
     mcpServer: mockMcpServer,
     k8sApi: mockK8sApi,
     k8sAppsApi: mockK8sAppsApi,
+    k8sNetworkingApi: mockK8sNetworkingApi,
     k8sAttach: mockK8sAttach,
     k8sLog: mockK8sLog,
     k8sExec: {} as Exec,
@@ -3522,6 +3524,9 @@ describe("K8sDeployment.stopDeployment", () => {
   function createK8sDeploymentWithMockedApis(
     mockK8sApi: Partial<k8s.CoreV1Api>,
     mockK8sAppsApi: Partial<k8s.AppsV1Api>,
+    mockK8sNetworkingApi: Partial<k8s.NetworkingV1Api> = {
+      deleteNamespacedNetworkPolicy: vi.fn().mockResolvedValue({}),
+    },
   ): K8sDeployment {
     const mockMcpServer = {
       id: "test-server-id",
@@ -3540,6 +3545,7 @@ describe("K8sDeployment.stopDeployment", () => {
       mcpServer: mockMcpServer,
       k8sApi: mockK8sApi as k8s.CoreV1Api,
       k8sAppsApi: mockK8sAppsApi as k8s.AppsV1Api,
+      k8sNetworkingApi: mockK8sNetworkingApi as k8s.NetworkingV1Api,
       k8sAttach: {} as Attach,
       k8sLog: {} as Log,
       k8sExec: {} as Exec,
@@ -3606,6 +3612,9 @@ describe("K8sDeployment.removeDeployment", () => {
   function createK8sDeploymentWithMockedApis(
     mockK8sApi: Partial<k8s.CoreV1Api>,
     mockK8sAppsApi: Partial<k8s.AppsV1Api>,
+    mockK8sNetworkingApi: Partial<k8s.NetworkingV1Api> = {
+      deleteNamespacedNetworkPolicy: vi.fn().mockResolvedValue({}),
+    },
   ): K8sDeployment {
     const mockMcpServer = {
       id: "test-server-id",
@@ -3624,6 +3633,7 @@ describe("K8sDeployment.removeDeployment", () => {
       mcpServer: mockMcpServer,
       k8sApi: mockK8sApi as k8s.CoreV1Api,
       k8sAppsApi: mockK8sAppsApi as k8s.AppsV1Api,
+      k8sNetworkingApi: mockK8sNetworkingApi as k8s.NetworkingV1Api,
       k8sAttach: {} as Attach,
       k8sLog: {} as Log,
       k8sExec: {} as Exec,

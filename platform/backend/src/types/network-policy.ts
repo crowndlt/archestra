@@ -66,8 +66,6 @@ export const UpdateNetworkPolicySchema = z
 export const NetworkPolicyReferenceCountsSchema = z.object({
   environments: z.number().int().nonnegative(),
   defaultEnvironments: z.number().int().nonnegative(),
-  catalogItems: z.number().int().nonnegative(),
-  mcpServerInstallations: z.number().int().nonnegative(),
 });
 
 export const NetworkPolicyWithReferencesSchema =
@@ -76,13 +74,7 @@ export const NetworkPolicyWithReferencesSchema =
   });
 
 export const EffectiveNetworkPolicySchema = z.object({
-  source: z.enum([
-    "installation",
-    "catalog",
-    "environment",
-    "organization_default",
-    "built_in",
-  ]),
+  source: z.enum(["environment", "organization_default", "built_in"]),
   policy: SelectNetworkPolicySchema.nullable(),
 });
 

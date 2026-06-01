@@ -1841,72 +1841,6 @@ export const updateEnvironment = <ThrowOnError extends boolean = false>(options:
 });
 
 /**
- * List reusable organization network policies.
- *
- * Authentication:
- *
- * Required. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.
- *
- * Authorization:
- *
- * `environment:read`: View deployment environments
- */
-export const listNetworkPolicies = <ThrowOnError extends boolean = false>(options?: Options<ListNetworkPoliciesData, ThrowOnError>) => (options?.client ?? client).get<ListNetworkPoliciesResponses, ListNetworkPoliciesErrors, ThrowOnError>({ url: '/api/network-policies', ...options });
-
-/**
- * Create a reusable organization network policy.
- *
- * Authentication:
- *
- * Required. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.
- *
- * Authorization:
- *
- * `environment:create`: Create deployment environments
- */
-export const createNetworkPolicy = <ThrowOnError extends boolean = false>(options: Options<CreateNetworkPolicyData, ThrowOnError>) => (options.client ?? client).post<CreateNetworkPolicyResponses, CreateNetworkPolicyErrors, ThrowOnError>({
-    url: '/api/network-policies',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Delete a reusable organization network policy. Fails with 409 while it is still assigned.
- *
- * Authentication:
- *
- * Required. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.
- *
- * Authorization:
- *
- * `environment:delete`: Delete deployment environments
- */
-export const deleteNetworkPolicy = <ThrowOnError extends boolean = false>(options: Options<DeleteNetworkPolicyData, ThrowOnError>) => (options.client ?? client).delete<DeleteNetworkPolicyResponses, DeleteNetworkPolicyErrors, ThrowOnError>({ url: '/api/network-policies/{id}', ...options });
-
-/**
- * Update a reusable organization network policy.
- *
- * Authentication:
- *
- * Required. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.
- *
- * Authorization:
- *
- * `environment:update`: Modify deployment environment namespace
- */
-export const updateNetworkPolicy = <ThrowOnError extends boolean = false>(options: Options<UpdateNetworkPolicyData, ThrowOnError>) => (options.client ?? client).patch<UpdateNetworkPolicyResponses, UpdateNetworkPolicyErrors, ThrowOnError>({
-    url: '/api/network-policies/{id}',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
  * Probe whether a Kubernetes namespace exists and is reachable. Returns accessible:true when the runtime is disabled (namespace will be stored but not verified).
  *
  * Authentication:
@@ -3771,6 +3705,72 @@ export const modelRouterChatCompletionsWithDefaultAgent = <ThrowOnError extends 
  */
 export const modelRouterChatCompletionsWithAgent = <ThrowOnError extends boolean = false>(options: Options<ModelRouterChatCompletionsWithAgentData, ThrowOnError>) => (options.client ?? client).post<ModelRouterChatCompletionsWithAgentResponses, ModelRouterChatCompletionsWithAgentErrors, ThrowOnError>({
     url: '/v1/model-router/{agentId}/chat/completions',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List reusable organization network policies.
+ *
+ * Authentication:
+ *
+ * Required. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.
+ *
+ * Authorization:
+ *
+ * `environment:read`: View deployment environments
+ */
+export const listNetworkPolicies = <ThrowOnError extends boolean = false>(options?: Options<ListNetworkPoliciesData, ThrowOnError>) => (options?.client ?? client).get<ListNetworkPoliciesResponses, ListNetworkPoliciesErrors, ThrowOnError>({ url: '/api/network-policies', ...options });
+
+/**
+ * Create a reusable organization network policy.
+ *
+ * Authentication:
+ *
+ * Required. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.
+ *
+ * Authorization:
+ *
+ * `environment:create`: Create deployment environments
+ */
+export const createNetworkPolicy = <ThrowOnError extends boolean = false>(options: Options<CreateNetworkPolicyData, ThrowOnError>) => (options.client ?? client).post<CreateNetworkPolicyResponses, CreateNetworkPolicyErrors, ThrowOnError>({
+    url: '/api/network-policies',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete a reusable organization network policy. Fails with 409 while it is still assigned.
+ *
+ * Authentication:
+ *
+ * Required. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.
+ *
+ * Authorization:
+ *
+ * `environment:delete`: Delete deployment environments
+ */
+export const deleteNetworkPolicy = <ThrowOnError extends boolean = false>(options: Options<DeleteNetworkPolicyData, ThrowOnError>) => (options.client ?? client).delete<DeleteNetworkPolicyResponses, DeleteNetworkPolicyErrors, ThrowOnError>({ url: '/api/network-policies/{id}', ...options });
+
+/**
+ * Update a reusable organization network policy.
+ *
+ * Authentication:
+ *
+ * Required. Use an authenticated browser session or send your Archestra API key in the `Authorization` header.
+ *
+ * Authorization:
+ *
+ * `environment:update`: Modify deployment environment namespace
+ */
+export const updateNetworkPolicy = <ThrowOnError extends boolean = false>(options: Options<UpdateNetworkPolicyData, ThrowOnError>) => (options.client ?? client).patch<UpdateNetworkPolicyResponses, UpdateNetworkPolicyErrors, ThrowOnError>({
+    url: '/api/network-policies/{id}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
