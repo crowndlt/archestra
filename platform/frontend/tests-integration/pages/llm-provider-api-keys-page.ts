@@ -1,5 +1,5 @@
-import type { Locator, Page } from "@playwright/test";
 import { E2eTestId } from "@archestra/shared/e2e-test-ids";
+import type { Locator, Page } from "@playwright/test";
 
 export class LlmProviderApiKeysPage {
   readonly page: Page;

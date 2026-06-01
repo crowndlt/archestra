@@ -1,5 +1,8 @@
 import type { UIMessage } from "@ai-sdk/react";
-import { type ArchestraToolShortName, parseFullToolName } from "@archestra/shared";
+import {
+  type ArchestraToolShortName,
+  parseFullToolName,
+} from "@archestra/shared";
 import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import {
   getToolErrorText,
